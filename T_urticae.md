@@ -590,6 +590,13 @@ cat ${assembly}/BUSCO/*insecta_odb10_short_summary.txt | grep 'C:' >> temp.txt
 echo Hemiptera: >> temp.txt
 cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
 done
+
+cp temp.txt Reports/urticae_assembly_report2.txt
+
+#24 appears to be the best assembly, however they are all very similar
+for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm/715m/*/ | grep -v BUSCO | grep -v kat | grep -v 24);do
+rm -r $assembly
+done
 ```
 All of these assemblies are worse, even the one with the same coverage setting... >:(
 
@@ -597,11 +604,7 @@ Have updated hifiasm from v16 to v19.5, will try with this version at different 
 ```bash
 Haploid_Genomesize_values=("345m" "430m" "470m" "570m" "610m" "670m" "715m" "775m" "880m")
 Homozygous_coverage_values=(12 30 40 50)
-Purge_haplotigs_level_values=(1 2 3)
-
-Haploid_Genomesize_values=("880m")
-Homozygous_coverage_values=(40 50)
-Purge_haplotigs_level_values=(1 2 3)
+Purge_haplotigs_level_values=(0 1 2 3)
 
 for Haploid_Genomesize in "${Haploid_Genomesize_values[@]}"
 do
@@ -628,13 +631,18 @@ printf "."
 Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
 done
 echo ${OutDir}/$OutFile >> logs/hifilog.txt
+if [ -s "${OutDir}/${OutFile}.bp.p_ctg.fa" ]; then
+echo Already done for: $OutFile
+else 
+echo Running for: $OutFile
 mkdir -p $OutDir
 sbatch $ProgDir/run_hifiasm_fa_only.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2 2>&1 >> logs/hifilog.txt
+fi
 done
 done
 done
 
-for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*/*.bp.p_ctg.fa | grep -v 'T_urticae_345m_12_'); do
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*/*.bp.p_ctg.fa); do
     ProgDir=~/git_repos/Wrappers/NBI
     OutDir=$(dirname $Genome)/BUSCO
     mkdir $OutDir 
@@ -645,41 +653,238 @@ for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ass
       printf "."
       Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
     done
-    sleep 30s
     Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
     OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
     echo $OutFile >> logs/buscolog.txt
     sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
     sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
     Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
     OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
     echo $OutFile >> logs/buscolog.txt
     sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
     sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
     Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
     OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
     echo $OutFile >> logs/buscolog.txt
     sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
 done 
 
-T_urticae_345m_12_1_12
-Submitted batch job 55715230
-T_urticae_345m_12_1_12_insecta_odb10
-Submitted batch job 55715234
-T_urticae_345m_12_1_12_hemiptera_odb10
-Submitted batch job 55715236
-T_urticae_345m_12_2_12_arthropoda_odb10
-Submitted batch job 55715237
-T_urticae_345m_12_2_12_insecta_odb10
-Submitted batch job 55715239
-T_urticae_345m_12_2_12_hemiptera_odb10
-Submitted batch job 55715241
-T_urticae_345m_12_3_12_arthropoda_odb10
-Submitted batch job 55715444
-T_urticae_345m_12_3_12_insecta_odb10
+rm temp.txt
+for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*);do
+echo "" >> temp.txt
+echo "" >> temp.txt
+echo $assembly >> temp.txt
+cat ${assembly}/*abyss_report.txt >> temp.txt
+echo Arthropoda: >> temp.txt
+cat ${assembly}/BUSCO/*arthropoda_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Insecta: >> temp.txt
+cat ${assembly}/BUSCO/*insecta_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Hemiptera: >> temp.txt
+cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
+done
 
+cp temp.txt Reports/urticae_assembly_report3.txt
+
+#Once again results are very similar accross assemblies, T_urticae_570m_12_3.bp.p_ctg.fa, is probably best overall with highest N50 of those with highest buscos, although 25992 contigs - peak_hom: 32; peak_het: 14
 ```
+```bash
+Haploid_Genomesize_values=("570m")
+Homozygous_coverage_values=(12 32)
+Purge_haplotigs_level_values=(3)
+Kmer_cuttoff_values=("3.0" "4.0" "5.0" "10.0")
+Similarity_threshold_values=("0.75" "0.5" "0.25")
 
+for Haploid_Genomesize in "${Haploid_Genomesize_values[@]}"
+do
+for Homozygous_coverage in "${Homozygous_coverage_values[@]}"
+do
+for Purge_haplotigs_level in "${Purge_haplotigs_level_values[@]}"
+do
+for Kmer_cuttoff in "${Kmer_cuttoff_values[@]}"
+do
+for Similarity_threshold in "${Similarity_threshold_values[@]}"
+do
+ReadDir=$(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi)
+ProgDir=~/git_repos/Wrappers/NBI
+Run1=$(ls $ReadDir/urticae_hifi-reads.fastq.gz)
+Run2=$(ls $ReadDir/urticae_hifi-3rdSMRTcell.fastq.gz)
+OutDir=$(echo $ReadDir|sed 's@raw_data@assembly/genome@g'|sed 's@HiFi@hifiasm_19.5@g')/${Haploid_Genomesize}/${Homozygous_coverage}/${Purge_haplotigs_level}/${Kmer_cuttoff}/${Similarity_threshold}
+OutFile=T_urticae_${Haploid_Genomesize}_${Homozygous_coverage}_${Purge_haplotigs_level}_${Kmer_cuttoff}_${Similarity_threshold}
+Min_contig=2 #default
+Kmer_size=51 #default
+Overlap_iterations=200 #increasing can improve assembly quality 
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+echo x
+while [ $Jobs -gt 11 ]; do
+sleep 900s
+printf "."
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+done
+echo ${OutDir}/$OutFile >> logs/hifilog.txt
+if [ -s "${OutDir}/${OutFile}.bp.p_ctg.fa" ]; then
+echo Already done for: $OutFile
+else 
+echo Running for: $OutFile
+mkdir -p $OutDir
+sbatch $ProgDir/run_hifiasm_fa_only.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2 2>&1 >> logs/hifilog.txt
+fi
+done
+done
+done
+done
+done
+
+Haploid_Genomesize_values=("610m")
+Homozygous_coverage_values=(12 32)
+Purge_haplotigs_level_values=(1)
+Kmer_cuttoff_values=("3.0" "4.0" "5.0" "10.0")
+Similarity_threshold_values=("0.75" "0.5" "0.25")
+
+for Haploid_Genomesize in "${Haploid_Genomesize_values[@]}"
+do
+for Homozygous_coverage in "${Homozygous_coverage_values[@]}"
+do
+for Purge_haplotigs_level in "${Purge_haplotigs_level_values[@]}"
+do
+for Kmer_cuttoff in "${Kmer_cuttoff_values[@]}"
+do
+for Similarity_threshold in "${Similarity_threshold_values[@]}"
+do
+ReadDir=$(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi)
+ProgDir=~/git_repos/Wrappers/NBI
+Run1=$(ls $ReadDir/urticae_hifi-reads.fastq.gz)
+Run2=$(ls $ReadDir/urticae_hifi-3rdSMRTcell.fastq.gz)
+OutDir=$(echo $ReadDir|sed 's@raw_data@assembly/genome@g'|sed 's@HiFi@hifiasm_19.5@g')/${Haploid_Genomesize}/${Homozygous_coverage}/${Purge_haplotigs_level}/${Kmer_cuttoff}/${Similarity_threshold}
+OutFile=T_urticae_${Haploid_Genomesize}_${Homozygous_coverage}_${Purge_haplotigs_level}_${Kmer_cuttoff}_${Similarity_threshold}
+Min_contig=2 #default
+Kmer_size=51 #default
+Overlap_iterations=200 #increasing can improve assembly quality 
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+echo x
+while [ $Jobs -gt 11 ]; do
+sleep 900s
+printf "."
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+done
+echo ${OutDir}/$OutFile >> logs/hifilog.txt
+if [ -s "${OutDir}/${OutFile}.bp.p_ctg.fa" ]; then
+echo Already done for: $OutFile
+else 
+echo Running for: $OutFile
+mkdir -p $OutDir
+sbatch $ProgDir/run_hifiasm_fa_only.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2 2>&1 >> logs/hifilog.txt
+fi
+done
+done
+done
+done
+done
+
+Haploid_Genomesize_values=("715m")
+Homozygous_coverage_values=(12 32)
+Purge_haplotigs_level_values=(2)
+Kmer_cuttoff_values=("3.0" "4.0" "5.0" "10.0")
+Similarity_threshold_values=("0.75" "0.5" "0.25")
+
+for Haploid_Genomesize in "${Haploid_Genomesize_values[@]}"
+do
+for Homozygous_coverage in "${Homozygous_coverage_values[@]}"
+do
+for Purge_haplotigs_level in "${Purge_haplotigs_level_values[@]}"
+do
+for Kmer_cuttoff in "${Kmer_cuttoff_values[@]}"
+do
+for Similarity_threshold in "${Similarity_threshold_values[@]}"
+do
+ReadDir=$(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi)
+ProgDir=~/git_repos/Wrappers/NBI
+Run1=$(ls $ReadDir/urticae_hifi-reads.fastq.gz)
+Run2=$(ls $ReadDir/urticae_hifi-3rdSMRTcell.fastq.gz)
+OutDir=$(echo $ReadDir|sed 's@raw_data@assembly/genome@g'|sed 's@HiFi@hifiasm_19.5@g')/${Haploid_Genomesize}/${Homozygous_coverage}/${Purge_haplotigs_level}/${Kmer_cuttoff}/${Similarity_threshold}
+OutFile=T_urticae_${Haploid_Genomesize}_${Homozygous_coverage}_${Purge_haplotigs_level}_${Kmer_cuttoff}_${Similarity_threshold}
+Min_contig=2 #default
+Kmer_size=51 #default
+Overlap_iterations=200 #increasing can improve assembly quality 
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+echo x
+while [ $Jobs -gt 11 ]; do
+sleep 900s
+printf "."
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+done
+echo ${OutDir}/$OutFile >> logs/hifilog.txt
+if [ -s "${OutDir}/${OutFile}.bp.p_ctg.fa" ]; then
+echo Already done for: $OutFile
+else 
+echo Running for: $OutFile
+mkdir -p $OutDir
+sbatch $ProgDir/run_hifiasm_fa_only.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2 2>&1 >> logs/hifilog.txt
+fi
+done
+done
+done
+done
+done
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*/*/*/*.bp.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
 #### Flye
 ```bash
   for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi); do
