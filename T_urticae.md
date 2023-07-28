@@ -842,7 +842,7 @@ done
 done
 done
 
-for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*/*/*/*.bp.p_ctg.fa); do
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*/*/0.*/*.bp.p_ctg.fa); do
     ProgDir=~/git_repos/Wrappers/NBI
     OutDir=$(dirname $Genome)/BUSCO
     mkdir $OutDir 
@@ -884,6 +884,39 @@ for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ass
     echo Already done for: $OutFile
     fi
 done 
+
+rm temp.txt
+for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*/*/0.*); do
+echo "" >> temp.txt
+echo "" >> temp.txt
+echo $assembly >> temp.txt
+cat ${assembly}/*abyss_report.txt >> temp.txt
+echo Arthropoda: >> temp.txt
+cat ${assembly}/BUSCO/*arthropoda_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Insecta: >> temp.txt
+cat ${assembly}/BUSCO/*insecta_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Hemiptera: >> temp.txt
+cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
+done
+
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/610m/32/1/5.0/0.25/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/610m/32/1/5.0/0.25/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/610m/32/1/5.0/0.25/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.5/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.5/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.5/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.75/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.75/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.75/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/4.0/0.25/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/4.0/0.25/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/4.0/0.25/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/5.0/0.75/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/5.0/0.75/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
+#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/5.0/0.75/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
+
+
+cp temp.txt Reports/urticae_assembly_report3.txt
 ```
 #### Flye
 ```bash
