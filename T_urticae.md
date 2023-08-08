@@ -109,10 +109,10 @@ ProgDir=~/git_repos/Wrappers/NBI
 OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm/default/kat
 Outfile=kat_comp_vs_hifi_reads_repeated5
 F1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TUF20_hifi_reads.fastq.gz
-R1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TUF20_hifi_3rdSMRTcell.fastq.gz
+#R1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TUF20_hifi_3rdSMRTcell.fastq.gz
 mkdir $OutDir
 sbatch $ProgDir/run_kat_comp.sh $OutDir $Outfile $Genome $F1 $R1
-done #55509883, 55510199, 55516398, 55516470, 55516726, 55517981
+done #55509883, 55510199, 55516398, 55516470, 55516726, 55517981 The only way to get KAT to run properly is to only give it one read file, otherwise it keep comparing between the 2 read files rather than to the assembly...
 ```
 Versus TellSeq reads:
 Versus TellSeq reads:
@@ -479,7 +479,7 @@ for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ass
 done
 
 rm temp.txt
-for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/*/*);do
+for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm/*);do
 echo "" >> temp.txt
 echo "" >> temp.txt
 cat ${assembly}/*abyss_report.txt >> temp.txt
@@ -490,6 +490,8 @@ cat ${assembly}/BUSCO/*insecta_odb10_short_summary.txt | grep 'C:' >> temp.txt
 echo Hemiptera: >> temp.txt
 cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
 done
+
+cp temp.txt Reports/urticae_assembly_report.txt
 ```
 A genome size of 715 seems to give the most complete assembly.
 ```bash
@@ -842,7 +844,7 @@ done
 done
 done
 
-for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/*/*/*/*/0.*/*.bp.p_ctg.fa); do
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.75/*.bp.p_ctg.fa); do
     ProgDir=~/git_repos/Wrappers/NBI
     OutDir=$(dirname $Genome)/BUSCO
     mkdir $OutDir 
@@ -899,24 +901,41 @@ echo Hemiptera: >> temp.txt
 cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
 done
 
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/610m/32/1/5.0/0.25/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/610m/32/1/5.0/0.25/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/610m/32/1/5.0/0.25/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.5/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.5/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.5/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.75/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.75/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/4.0/0.75/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/4.0/0.25/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/4.0/0.25/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/4.0/0.25/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/5.0/0.75/BUSCO/*arthropoda_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/5.0/0.75/BUSCO/*insecta_odb10_short_summary.txt: No such file or directory
-#cat: /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/32/2/5.0/0.75/BUSCO/*hemiptera_odb10_short_summary.txt: No such file or directory
-
-
 cp temp.txt Reports/urticae_assembly_report3.txt
+```
+The most complete assembly is T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa with 87.6% of Hemiptera BUSCOs across 26,089 contigs, whilst T_urticae_570m_32_3_10.0_0.25.bp.p_ctg.fa was most contiguous with 85.4% of BUSCOs across 18,726 contigs. Using hifiasm with default settings produced an assembly with 84.7% of BUSCOs across 20,013 contigs (Trurt_default.bp.p_ctg.fa).
+```bash
+#These assemblies were kept:
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm/default/Trurt_default.bp.p_ctg.fa
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/570m/32/3/10.0/0.25/T_urticae_570m_32_3_10.0_0.25.bp.p_ctg.fa
+
+#All other assemblies were deleted - 278 in total:
+for assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifi*/*m/*.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifi*/*m/*/*.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifi*/*m/*/*/*.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifi*/*m/*/*/*/*/*.fa | grep -v 'Trurt_default.bp.p_ctg.fa\|T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa\|T_urticae_570m_32_3_10.0_0.25.bp.p_ctg.fa'); do
+rm $assembly  
+done
+```
+#### KAT
+```bash
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/570m/32/3/10.0/0.25/T_urticae_570m_32_3_10.0_0.25.bp.p_ctg.fa); do
+ProgDir=~/git_repos/Wrappers/NBI
+OutDir=$(dirname $Genome)/kat
+Outfile=kat_comp_vs_hifi_reads
+F1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TUF20_hifi_reads.fastq.gz
+R1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TUF20_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_kat_comp.sh $OutDir $Outfile $Genome $F1 $R1
+done #56145393, 56145394
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/570m/32/3/10.0/0.25/T_urticae_570m_32_3_10.0_0.25.bp.p_ctg.fa); do
+ProgDir=~/git_repos/Wrappers/NBI
+OutDir=$(dirname $Genome)/kat
+Outfile=kat_comp_vs_tellseq_reads
+F1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_T502_R1.fastq.gz
+R1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_T502_R2.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_kat_comp_paired.sh $OutDir $Outfile $Genome $F1 $R1
+done #56145395, 56145396
 ```
 #### Flye
 ```bash
