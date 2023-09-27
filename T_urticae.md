@@ -34,6 +34,29 @@ ln -s /hpc-home/tmathers/JIC_TM_scratch_DIR/Caliber_tellseq_run1_2_psyllids/Full
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_urticae/urticae-286170_S3HiC_R1.fastq-001.gz raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_urticae/urticae-286170_S3HiC_R2.fastq-002.gz raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
 ```
+#### Fastqc
+```bash
+for ReadFile in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/*/*.fastq.gz); do
+OutDir=$(dirname $ReadFile)/fastqc
+OutFile=$(basename $ReadFile | sed 's@.fastq.gz@@g')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_fastqc.sh $ReadFile $OutDir $OutFile
+done
+#57205220-57205235
+```
+#### longQC
+```bash
+for Reads in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi/*.fastq.gz); do
+Datatype=pb-hifi
+OutDir=$(dirname $Reads)/longqc/$(basename $Reads | cut -d '.' -f1)
+OutFile=$(basename $Reads | cut -d '.' -f1)
+ProgDir=~/git_repos/Wrappers/NBI
+echo ${OutDir}/${OutFile}
+mkdir $(dirname $Reads)/longqc
+sbatch $ProgDir/run_longqc.sh $Reads $OutDir $OutFile $Datatype
+done #57206533-4
+```
 ## Hifiasm
 
 ### Default settings
@@ -937,6 +960,243 @@ mkdir $OutDir
 sbatch $ProgDir/run_kat_comp_paired.sh $OutDir $Outfile $Genome $F1 $R1
 done #56145395, 56145396
 ```
+#### Merqury
+```bash
+source /nbi/software/staging/RCSUPPORT-2452/stagingloader
+for Reads in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/*/*.fastq.gz); do
+OutDir=$(dirname $Reads)/meryl
+mkdir $OutDir
+meryl k=21 count output ${OutDir}/$(basename $Reads | sed 's@.fastq.gz@@g').meryl $Reads 
+done
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/570m/32/3/10.0/0.25/meryl
+meryl union-sum output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/570m/32/3/10.0/0.25/meryl/T_urticae_570m_32_3_10.0_0.25.meryl /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/*/meryl/*.meryl
+#57218451, 57220781
+
+merqury.sh 
+```
+#### Blobtools
+Blobtools with Hifi reads
+```bash
+#alignment of reads to unfiltered assembly
+ProgDir=~/git_repos/Wrappers/NBI
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+OutDir=$(dirname $Reference)/minimap2
+Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TUF20_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TUF20_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Reference $Read1 $Read2 #56939385
+
+#Blast
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+OutDir=$(dirname $Assembly)/blast2.12.0
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_23092023/5/nt
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blastn.sh $Assembly $Database $OutDir $OutPrefix 
+#57175072, 57182844
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+OutDir=$(dirname $Assembly)/blast2.7.1
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_23092023/4/nt
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blastn_2.7.1.sh $Assembly $Database $OutDir $OutPrefix 
+#57193501
+
+#Blobtools
+wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz -P data/
+tar zxf taxdump.tar.gz -C . nodes.dmp names.dmp
+./blobtools nodesdb --nodes nodes.dmp --names names.dmp
+
+#BUSCO - keeping output files
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    sbatch $ProgDir/run_busco_keep.sh $Genome $Database $OutDir $OutFile 
+done 
+#57207203
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+OutDir=$(dirname $Assembly)/blobtools1.1.1
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+ColourFile=NA
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blobplot.sh $Assembly $MappingFile $BlastFile $OutDir $OutPrefix $ColourFile
+#57194209
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+Record_type=contig
+MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+BUSCOFile=NA
+OutDir=$(dirname $Assembly)/blobtoolkit4.2.1
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+Genus=Trioza
+Species=urticae
+TaxID=121826
+Alias=Turt1223005
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blobtoolkit4.2.1.sh $Assembly $Record_type $MappingFile $BlastFile $BUSCOFile $OutDir $OutPrefix $Genus $Species $TaxID $Alias
+#57207517
+```
+Blobtools with HiC reads
+```bash
+#alignment of reads to unfiltered assembly
+ProgDir=~/git_repos/Wrappers/NBI
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+OutDir=$(dirname $Reference)/bwa
+Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')_HiC
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Reference $Read1 $Read2 
+#57207041
+```
+Blobtools with TellSeq reads
+```bash
+#alignment of reads to unfiltered assembly
+ProgDir=~/git_repos/Wrappers/NBI
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+OutDir=$(dirname $Reference)/bwa
+Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')_Tellseq
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_R1_T505.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_R2_T505.fastq.gz
+Read3=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_R1_T507.fastq.gz
+Read4=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_R2_T507.fastq.gz
+Read5=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_T502_R1.fastq.gz
+Read6=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_T502_R2.fastq.gz
+Read7=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_T504_R1.fastq.gz
+Read8=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/urticae_T504_R2.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Reference $Read1 $Read2 $Read3 $Read4 $Read5 $Read6 $Read7 $Read8 
+#57207046
+```
+#### Kraken 
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_kraken2nt
+OutDir=$(dirname $Assembly)/kraken2.1.3
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/kraken/nt_14092023
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_kraken2.sh $Assembly $Database $OutDir $OutPrefix 2>&1 >> ${OutDir}/log.txt
+#57115815, 57115857
+
+```
+#### HiC and PacBio Prep
+```bash
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/
+#urticae_286170-S3HiC_R1.fastq.gz  urticae_286170-S3HiC_R2.fastq.gz
+
+source package 638df626-d658-40aa-80e5-14a275b7464b
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/
+samtools import -@16 -r ID:urticae_286170-S3HiC -r CN:S3HiC -r PU:urticae_286170-S3HiC -r SM:urticae_286170 urticae_286170-S3HiC_R1.fastq.gz urticae_286170-S3HiC_R2.fastq.gz -o urticae_286170-S3HiC.cram
+samtools index -@16 urticae_286170-S3HiC.cram
+#57183981
+
+
+source package /nbi/software/testing/bin/seqtk-1.2
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi/
+mkdir fasta
+for i in *fastq.gz; do
+  echo $i
+  j=${i%.fastq.gz}
+  echo $j
+  seqtk seq -a $i > fasta/${j}.fasta
+done
+
+cd fasta
+for i in *.fasta; do
+  echo $i
+  gzip $i
+done
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #### Flye
 ```bash
   for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi); do

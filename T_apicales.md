@@ -22,6 +22,17 @@ ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R1.fastq-002.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R2.fastq-001.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
 ```
+#### Fastqc
+```bash
+for ReadFile in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/*/*.fastq.gz); do
+OutDir=$(dirname $ReadFile)/fastqc
+OutFile=$(basename $ReadFile | sed 's@.fastq.gz@@g')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_fastqc.sh $ReadFile $OutDir $OutFile
+done
+#57205247-57205256
+```
 #### longQC
 ```bash
 for Reads in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi/*.fastq.gz); do
@@ -32,7 +43,7 @@ ProgDir=~/git_repos/Wrappers/NBI
 echo ${OutDir}/${OutFile}
 mkdir $(dirname $Reads)/longqc
 sbatch $ProgDir/run_longqc.sh $Reads $OutDir $OutFile $Datatype
-done #55614583,4
+done #57206555-6
 ```
 ## Hifiasm
 
@@ -59,6 +70,76 @@ source anaconda2-5.1.0;source activate kat
 cd /hpc-home/tmathers/JIC_TM_scratch_DIR/Caliber_pb_HiFi_assembly/with_third_flow_cell/Trapi #kat cannot find the assembly file when not in the same directory???
 ~/git_repos/Wrappers/NBI/submit-slurm_v1.1.pl -q nbi-long -m 200000 -c 32 -t 5-00:00:00 -e -j kat_comp -i "source package 7f4fb852-f5c2-4e4b-b9a6-e648176d5543;kat comp -t 32 -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/default/kat/kat_comp_vs_tellseq_reads -m 31 -H 100000000 -I 100000000 '/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R2.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_I1.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_I1.fastq.gz' 'Trapi_default.p_ctg.fa'"
 #55340356
+```
+#### BUSCO
+```bash
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/default/Trapi_default.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+
+rm temp.txt
+for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/default); do
+echo "" >> temp.txt
+echo "" >> temp.txt
+echo $assembly >> temp.txt
+cat ${assembly}/*abyss_report.txt >> temp.txt
+echo Arthropoda: >> temp.txt
+cat ${assembly}/BUSCO/*arthropoda_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Insecta: >> temp.txt
+cat ${assembly}/BUSCO/*insecta_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Hemiptera: >> temp.txt
+cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
+done
+
+cat temp.txt 
+
+#n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
+#5789    5789    1018    6062    114841    253936    484828    324707    2804342    868.6e6    Trapi_default.p_ctg.fa
+#Arthropoda:
+#        C:94.4%[S:45.2%,D:49.2%],F:3.0%,M:2.6%,n:1013
+#Insecta:
+#        C:93.6%[S:45.8%,D:47.8%],F:3.3%,M:3.1%,n:1367
+#Hemiptera:
+#        C:94.0%[S:47.0%,D:47.0%],F:3.1%,M:2.9%,n:2510
 ```
 #### Jellyfish/kmc
 ```bash
@@ -172,6 +253,8 @@ sum(as.numeric(dataframe75[7:80,1]*dataframe75[7:80,2]))/16
 K-mer estimates of genome size range from 607-672-880, genomescope plots with smaller sizes do not look to capture all of the observed kmers.
 
 Genomescope and kmer distribution plots give different genome sizes.
+
+
 ```bash
   for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi); do
     ProgDir=~/git_repos/Wrappers/NBI
@@ -191,8 +274,8 @@ Genomescope and kmer distribution plots give different genome sizes.
     sbatch $ProgDir/run_hifiasm.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2
   done #55339301, 55339623
 
-#n		n:500	n:N50	min		N80		N50		N20		max		sum
-#7735	7735	1455	4192	98560	208448	399581	2804342	1.023e9	assembly/genome/T_apicales/hifiasm/645m/T_apicales_645m.bp.p_ctg.fa
+#n    n:500 n:N50 min   N80   N50   N20   max   sum
+#7735 7735  1455  4192  98560 208448  399581  2804342 1.023e9 assembly/genome/T_apicales/hifiasm/645m/T_apicales_645m.bp.p_ctg.fa
 
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/645m/T_apicales_645m.bp.p_ctg.fa); do
   Jobs=$(squeue -u did23faz| grep 'kat_comp'  | wc -l)
@@ -231,8 +314,8 @@ done
     sbatch $ProgDir/run_hifiasm.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2
   done #55341159
 
-#n	n:500	L50	min	N80	N50	N20	max	sum
-#7,745	7,745	1,457	7,321	98,475	209,373	397,104	2,804,342	1,022,000,000
+#n  n:500 L50 min N80 N50 N20 max sum
+#7,745  7,745 1,457 7,321 98,475  209,373 397,104 2,804,342 1,022,000,000
 
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/878m/T_apicales_878m.bp.p_ctg.fa); do
   Jobs=$(squeue -u did23faz| grep 'kat_comp'  | wc -l)
@@ -250,7 +333,427 @@ R1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales
 mkdir $OutDir
 sbatch $ProgDir/run_kat_comp_paired.sh $OutDir $Outfile $Genome $F1 $R1
 done
-```							
+```     
+
+Assembly was tried with a range of genome sizes based upon the k-mer distribution and genomescope estimates:
+
+```bash
+Haploid_Genomesize_values=("360m" "510m" "555m" "600m" "645m" "675m" "820m" "880m")
+Homozygous_coverage_values=(40)
+Purge_haplotigs_level_values=(3)
+Kmer_cuttoff_values=("5.0")
+Similarity_threshold_values=("0.75")
+
+for Haploid_Genomesize in "${Haploid_Genomesize_values[@]}"
+do
+for Homozygous_coverage in "${Homozygous_coverage_values[@]}"
+do
+for Purge_haplotigs_level in "${Purge_haplotigs_level_values[@]}"
+do
+for Kmer_cuttoff in "${Kmer_cuttoff_values[@]}"
+do
+for Similarity_threshold in "${Similarity_threshold_values[@]}"
+do
+ReadDir=$(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi)
+ProgDir=~/git_repos/Wrappers/NBI
+Run1=$(ls $ReadDir/apicales_hifi-reads.fastq.gz)
+Run2=$(ls $ReadDir/apicales_hifi-3rdSMRTcell.fastq.gz)
+OutDir=$(echo $ReadDir|sed 's@raw_data@assembly/genome@g'|sed 's@HiFi@hifiasm_19.5@g')/${Haploid_Genomesize}/${Homozygous_coverage}/${Purge_haplotigs_level}/${Kmer_cuttoff}/${Similarity_threshold}
+OutFile=T_apicales_${Haploid_Genomesize}_${Homozygous_coverage}_${Purge_haplotigs_level}_${Kmer_cuttoff}_${Similarity_threshold}
+Min_contig=2 #default
+Kmer_size=51 #default
+Overlap_iterations=200 #increasing can improve assembly quality 
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+echo x
+while [ $Jobs -gt 11 ]; do
+sleep 900s
+printf "."
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+done
+echo ${OutDir}/$OutFile >> logs/apicales_hifilog.txt
+if [ -s "${OutDir}/${OutFile}.bp.p_ctg.fa" ]; then
+echo Already done for: $OutFile
+else 
+echo Running for: $OutFile
+mkdir -p $OutDir
+sbatch $ProgDir/run_hifiasm_fa_only.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2 2>&1 >> logs/apicales_hifilog.txt
+fi
+done
+done
+done
+done
+done
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*/*.bp.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+
+rm temp.txt
+for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/default ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*); do
+echo "" >> temp.txt
+echo "" >> temp.txt
+echo $assembly >> temp.txt
+cat ${assembly}/*abyss_report.txt >> temp.txt
+echo Arthropoda: >> temp.txt
+cat ${assembly}/BUSCO/*arthropoda_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Insecta: >> temp.txt
+cat ${assembly}/BUSCO/*insecta_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Hemiptera: >> temp.txt
+cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
+done
+
+cat temp.txt 
+```
+HiFiasm gives different estimates for homozygous coverage:
+```bash
+grep -m 1 'peak_hom:' slurm.56260026.err slurm.56260027.err slurm.56260028.err slurm.56260029.err slurm.56260030.err slurm.56260031.err slurm.56260032.err slurm.56260033.err
+
+#360m:
+#slurm.56260026.err:[M::ha_ft_gen] peak_hom: 68; peak_het: 19
+#510m:
+#slurm.56260027.err:[M::ha_ft_gen] peak_hom: 48; peak_het: 19
+#555m: 
+#slurm.56260028.err:[M::ha_ft_gen] peak_hom: 44; peak_het: 19
+#600m: 
+#slurm.56260029.err:[M::ha_ft_gen] peak_hom: 40; peak_het: 19
+#645m: 
+#slurm.56260030.err:[M::ha_ft_gen] peak_hom: 38; peak_het: 19
+#675m: 
+#slurm.56260031.err:[M::ha_ft_gen] peak_hom: 36; peak_het: 19
+#820m: 
+#slurm.56260032.err:[M::ha_ft_gen] peak_hom: 29; peak_het: 19
+#880m:
+#slurm.56260033.err:[M::ha_ft_gen] peak_hom: 19; peak_het: -1
+```
+The results from this range are very similar, 880m gives slightly better BUSCO completeness and 510m gives slightly better N50. 
+```bash
+Haploid_Genomesize_values=("510m" "880m")
+Homozygous_coverage_values=(19 29 38 48)
+Purge_haplotigs_level_values=(0 1 2 3)
+Kmer_cuttoff_values=("3.0" "4.0" "5.0" "10.0")
+Similarity_threshold_values=("0.75" "0.50" "0.25")
+
+for Haploid_Genomesize in "${Haploid_Genomesize_values[@]}"
+do
+for Homozygous_coverage in "${Homozygous_coverage_values[@]}"
+do
+for Purge_haplotigs_level in "${Purge_haplotigs_level_values[@]}"
+do
+for Kmer_cuttoff in "${Kmer_cuttoff_values[@]}"
+do
+for Similarity_threshold in "${Similarity_threshold_values[@]}"
+do
+ReadDir=$(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi)
+ProgDir=~/git_repos/Wrappers/NBI
+Run1=$(ls $ReadDir/apicales_hifi-reads.fastq.gz)
+Run2=$(ls $ReadDir/apicales_hifi-3rdSMRTcell.fastq.gz)
+OutDir=$(echo $ReadDir|sed 's@raw_data@assembly/genome@g'|sed 's@HiFi@hifiasm_19.5@g')/${Haploid_Genomesize}/${Homozygous_coverage}/${Purge_haplotigs_level}/${Kmer_cuttoff}/${Similarity_threshold}
+OutFile=T_apicales_${Haploid_Genomesize}_${Homozygous_coverage}_${Purge_haplotigs_level}_${Kmer_cuttoff}_${Similarity_threshold}
+Min_contig=2 #default
+Kmer_size=51 #default
+Overlap_iterations=200 #increasing can improve assembly quality 
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+echo x
+while [ $Jobs -gt 11 ]; do
+sleep 900s
+printf "."
+Jobs=$(squeue -u did23faz| grep 'hifiasm'  | wc -l)
+done
+echo ${OutDir}/$OutFile >> logs/apicales_hifilog.txt
+if [ -s "${OutDir}/${OutFile}.bp.p_ctg.fa" ]; then
+echo Already done for: $OutFile
+else 
+echo Running for: $OutFile
+mkdir -p $OutDir
+sbatch $ProgDir/run_hifiasm_fa_only.sh $OutDir $OutFile $Haploid_Genomesize $Homozygous_coverage $Min_contig $Purge_haplotigs_level $Kmer_cuttoff $Overlap_iterations $Kmer_size $Similarity_threshold $Run1 $Run2 2>&1 >> logs/apicales_hifilog.txt
+fi
+done
+done
+done
+done 
+done
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*/*.bp.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+
+rm temp.txt
+for assembly in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/default /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*); do
+echo "" >> temp.txt
+echo "" >> temp.txt
+echo $assembly >> temp.txt
+cat ${assembly}/*abyss_report.txt >> temp.txt
+echo Arthropoda: >> temp.txt
+cat ${assembly}/BUSCO/*arthropoda_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Insecta: >> temp.txt
+cat ${assembly}/BUSCO/*insecta_odb10_short_summary.txt | grep 'C:' >> temp.txt
+echo Hemiptera: >> temp.txt
+cat ${assembly}/BUSCO/*hemiptera_odb10_short_summary.txt | grep 'C:' >> temp.txt
+done
+
+cp temp.txt Reports/apicales_assembly_report3.txt
+```
+Amongst hifiasm_19.5 assemblies the highist BUSCO score is 94.7% of Hemiptera BUSCOs, 105 assemblies have this score, amongst these T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa has highest contiguity with 7,411 contigs and N50=223,272. The most contiguous hifiasm_19.5 assembly was T_apicales_510m_48_3_10.0_0.25.bp.p_ctg.fa with 3,811 contigs, N50=330,047, 93.4% of Hemiptera BUSCOs, this is also the highest N50. T_apicales_880m_48_2_5.0_0.25.bp.p_ctg.fa has 4,505 contigs, N50=298,439, 94% of Hemiptera BUSCOs.
+
+```bash
+#These assemblies were kept:
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/default/Trapi_default.p_ctg.fa
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/510m/48/3/10.0/0.25/T_apicales_510m_48_3_10.0_0.25.bp.p_ctg.fa
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/48/2/5.0/0.25/T_apicales_880m_48_2_5.0_0.25.bp.p_ctg.fa
+
+#All other assemblies were deleted:
+for assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*/*.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/*/*.fa | grep -v 'Trapi_default.p_ctg.fa\|T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa\|T_apicales_510m_48_3_10.0_0.25.bp.p_ctg.fa\|T_apicales_880m_48_2_5.0_0.25.bp.p_ctg.fa'); do
+rm $assembly  
+done
+```
+#### KAT
+```bash
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*/*.fa); do
+ProgDir=~/git_repos/Wrappers/NBI
+OutDir=$(dirname $Genome)/kat
+Outfile=kat_comp_vs_hifi_reads
+F1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
+R1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_kat_comp.sh $OutDir $Outfile $Genome $F1 $R1
+done #56881253, 56881254, 56881255
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*/*.fa); do
+ProgDir=~/git_repos/Wrappers/NBI
+OutDir=$(dirname $Genome)/kat
+Outfile=kat_comp_vs_tellseq_reads
+F1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz
+R1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R2.fastq.gz
+F2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
+R2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_kat_comp_paired.sh $OutDir $Outfile $Genome $F1 $R1
+done #56881258, 56881259, 56881260
+```
+#### Blobtools
+Blobtools with Hifi reads
+```bash
+#alignment of reads to unfiltered assembly
+ProgDir=~/git_repos/Wrappers/NBI
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutDir=$(dirname $Reference)/minimap2
+Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Reference $Read1 $Read2 #56939444
+
+#Blast
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+OutDir=$(dirname $Assembly)/blast2.12.0
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_23092023/5/nt
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blastn.sh $Assembly $Database $OutDir $OutPrefix 
+#57175082, 57182846
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+OutDir=$(dirname $Assembly)/blast2.7.1
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_23092023/4/nt
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blastn_2.7.1.sh $Assembly $Database $OutDir $OutPrefix 
+#57193492
+
+#BUSCO - keeping output files
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    sbatch $ProgDir/run_busco_keep.sh $Genome $Database $OutDir $OutFile 
+done 
+#57207206
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+OutDir=$(dirname $Assembly)/blobtools1.1.1
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+ColourFile=NA
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blobplot.sh $Assembly $MappingFile $BlastFile $OutDir $OutPrefix $ColourFile
+#57160576, 57193462
+```
+Blobtools with HiC reads
+```bash
+#alignment of reads to unfiltered assembly
+ProgDir=~/git_repos/Wrappers/NBI
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutDir=$(dirname $Reference)/bwa
+Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')_HiC
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Reference $Read1 $Read2 
+#57207042
+```
+Blobtools with TellSeq reads
+```bash
+#alignment of reads to unfiltered assembly
+ProgDir=~/git_repos/Wrappers/NBI
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutDir=$(dirname $Reference)/bwa
+Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')_Tellseq
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R2.fastq.gz
+Read3=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
+Read4=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Reference $Read1 $Read2 $Read3 $Read4 
+#57207047
+```
+#### Kraken 
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_kraken2nt
+OutDir=$(dirname $Assembly)/kraken2.1.3
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/kraken/nt_14092023
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_kraken2.sh $Assembly $Database $OutDir $OutPrefix 2>&1 >> ${OutDir}/log.txt
+```
+#### Purge assembly or remove haplotigs in pretext?
+```bash
+source purge_dups-git05062020
+split_fa Trapi_default.p_ctg.fa > Trapi_default.p_ctg.fa.split
+```
+#### Scaffold with tellseq reads
+
+#### 3dDNA
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -350,17 +853,17 @@ juicer -> 3dDNA - without HiC data???
 fragmented assembly - try with different ERC (expected run count) values
 
 different -s values:
-	default:
-	n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
-	8004    8004    958    5968    66414    207299    456948    292192    2788957    730.8e6    Trant_default.p_ctg.fa
+  default:
+  n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
+  8004    8004    958    5968    66414    207299    456948    292192    2788957    730.8e6    Trant_default.p_ctg.fa
 
-	0.5:
-	n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
-	7979    7979    951    5968    66383    208789    457683    291866    2788957    727.9e6    Trant_default_hom_cov_30_s_0.5.p_ctg.fa
+  0.5:
+  n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
+  7979    7979    951    5968    66383    208789    457683    291866    2788957    727.9e6    Trant_default_hom_cov_30_s_0.5.p_ctg.fa
 
-	0.25
-	n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
-	7497    7497    883    5968    71044    221944    466650    303088    2788957    704.8e6    Trant_default_hom_cov_30_s_0.25.p_ctg.fa
+  0.25
+  n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
+  7497    7497    883    5968    71044    221944    466650    303088    2788957    704.8e6    Trant_default_hom_cov_30_s_0.25.p_ctg.fa
 
 default, -D 10 --hg-size 750m:
 n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
