@@ -9,6 +9,10 @@ Unless stated otherwise commands were performed from the directory /jic/scratch/
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz raw_data/T_apicales/HiFi/apicales_hifi-reads.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz raw_data/T_apicales/HiFi/apicales_hifi-3rdSMRTcell.fastq.gz
 
+#HiC reads:
+ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R1.fastq-002.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
+ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R2.fastq-001.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
+
 #Tellseq reads,  from 3rd tellseq run:
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_I1_T505.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T505_I1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_R1_T505.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz
@@ -17,10 +21,41 @@ ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_I1_T507.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T507_I1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_R1_T507.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_R2_T507.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
+```
+Remove HiFi reads containing adapters:
+```bash
+for InFile in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi/*.fastq.gz); do
+OutDir=$(dirname $InFile)/filtered
+OutFile=$(basename $InFile | sed 's@.fastq.gz@@g')_filtered
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_HiFiAdapterFilt.sh $InFile $OutDir $OutFile
+done 
+#57334905,6
+```
+TellSeq reads converted to 10X format:
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/10x
+ln -s /hpc-home/tmathers/JIC_TM_scratch_DIR/Caliber_tellseq_run3_T_anthrisci_T_apicales/10x_conversion/T505/R1_sl.fastq.gz.4tenx.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/10x/T505_S1_L001_R1_001.fastq.gz
+ln -s /hpc-home/tmathers/JIC_TM_scratch_DIR/Caliber_tellseq_run3_T_anthrisci_T_apicales/10x_conversion/T505/R2_sl.fastq.gz.4tenx.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/10x/T505_S1_L001_R2_001.fastq.gz
 
-#HiC reads:
-ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R1.fastq-002.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
-ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R2.fastq-001.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
+ln -s /hpc-home/tmathers/JIC_TM_scratch_DIR/Caliber_tellseq_run3_T_anthrisci_T_apicales/10x_conversion/T507/R1_sl.fastq.gz.4tenx.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/10x/T507_S1_L001_R1_001.fastq.gz
+ln -s /hpc-home/tmathers/JIC_TM_scratch_DIR/Caliber_tellseq_run3_T_anthrisci_T_apicales/10x_conversion/T507/R2_sl.fastq.gz.4tenx.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/10x/T507_S1_L001_R2_001.fastq.gz
+```
+TellSeq reads - remove the internal barcodes and adapters:
+```bash
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger
+
+for Reads in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/10x/*_S1_L001_R1_001.fastq.gz); do
+Fread=$Reads
+Rread=$(echo $Reads | sed 's@_S1_L001_R1_001.fastq.gz@_S1_L001_R2_001.fastq.gz@g')
+Run=$(basename $Reads | cut -d '_' -f1)
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger
+OutFile=Trapi_${Run}
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_longranger_basic.sh $Fread $Rread $Run $OutDir $OutFile
+done 
+#57160255-6
 ```
 #### Fastqc
 ```bash
@@ -585,15 +620,18 @@ cp temp.txt Reports/apicales_assembly_report3.txt
 ```
 Amongst hifiasm_19.5 assemblies the highist BUSCO score is 94.7% of Hemiptera BUSCOs, 105 assemblies have this score, amongst these T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa has highest contiguity with 7,411 contigs and N50=223,272. The most contiguous hifiasm_19.5 assembly was T_apicales_510m_48_3_10.0_0.25.bp.p_ctg.fa with 3,811 contigs, N50=330,047, 93.4% of Hemiptera BUSCOs, this is also the highest N50. T_apicales_880m_48_2_5.0_0.25.bp.p_ctg.fa has 4,505 contigs, N50=298,439, 94% of Hemiptera BUSCOs.
 
+Based on Merqury/KAT plot the true homozygous coverage is ~38
+
 ```bash
 #These assemblies were kept:
 ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/default/Trapi_default.p_ctg.fa
 ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
 ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/510m/48/3/10.0/0.25/T_apicales_510m_48_3_10.0_0.25.bp.p_ctg.fa
 ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/48/2/5.0/0.25/T_apicales_880m_48_2_5.0_0.25.bp.p_ctg.fa
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/38/0/5.0/0.75/T_apicales_880m_38_0_5.0_0.75.bp.p_ctg.fa
 
 #All other assemblies were deleted:
-for assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*/*.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/*/*.fa | grep -v 'Trapi_default.p_ctg.fa\|T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa\|T_apicales_510m_48_3_10.0_0.25.bp.p_ctg.fa\|T_apicales_880m_48_2_5.0_0.25.bp.p_ctg.fa'); do
+for assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/*/*/*/*/*/*.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm/*/*.fa | grep -v 'Trapi_default.p_ctg.fa\|T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa\|T_apicales_510m_48_3_10.0_0.25.bp.p_ctg.fa\|T_apicales_880m_48_2_5.0_0.25.bp.p_ctg.fa\|T_apicales_880m_38_0_5.0_0.75.bp.p_ctg.fa'); do
 rm $assembly  
 done
 ```
@@ -621,37 +659,203 @@ mkdir $OutDir
 sbatch $ProgDir/run_kat_comp_paired.sh $OutDir $Outfile $Genome $F1 $R1
 done #56881258, 56881259, 56881260
 ```
+#### Merqury
+Kmer plots with all reads; Hifi, HiC, Tellseq
+```bash
+#Prepare meryl kmer counts
+source /nbi/software/staging/RCSUPPORT-2452/stagingloader
+for Reads in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/*/*.fastq.gz); do
+OutDir=$(dirname $Reads)/meryl
+mkdir $OutDir
+meryl k=21 count output ${OutDir}/$(basename $Reads | sed 's@.fastq.gz@@g').meryl $Reads 
+done
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+mkdir $(dirname $Assembly)/meryl
+meryl union-sum output $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/*/meryl/*.meryl
+mkdir $(dirname $Assembly)/meryl/HiFi 
+meryl union-sum output $(dirname $Assembly)/meryl/HiFi/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi/meryl/*.meryl
+mkdir $(dirname $Assembly)/meryl/HiC
+meryl union-sum output $(dirname $Assembly)/meryl/HiC/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/meryl/*.meryl
+mkdir $(dirname $Assembly)/meryl/Tellseq
+meryl union-sum output $(dirname $Assembly)/meryl/Tellseq/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/meryl/*.meryl
+
+#Plot with merqury
+mkdir $(dirname $Assembly)/merqury/
+cd $(dirname $Assembly)/merqury/
+ln -s $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+ln -s $Assembly
+meryl histogram $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl.hist
+merqury.sh $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl/ $(basename $Assembly) $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g') #NOTE: needs >25GB memory to complete, errors will output to log/ file not to slurm.err
+
+mkdir $(dirname $Assembly)/merqury/HiFi
+cd $(dirname $Assembly)/merqury/HiFi
+ln -s $(dirname $Assembly)/meryl/HiFi/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+ln -s $Assembly
+meryl histogram $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl.hist
+merqury.sh $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl/ $(basename $Assembly) $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+
+mkdir $(dirname $Assembly)/merqury/HiC
+cd $(dirname $Assembly)/merqury/HiC
+ln -s $(dirname $Assembly)/meryl/HiC/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+ln -s $Assembly
+meryl histogram $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl.hist
+merqury.sh $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl/ $(basename $Assembly) $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+
+mkdir $(dirname $Assembly)/merqury/TellSeq
+cd $(dirname $Assembly)/merqury/TellSeq
+ln -s $(dirname $Assembly)/meryl/Tellseq/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+ln -s $Assembly
+meryl histogram $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl.hist
+merqury.sh $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl/ $(basename $Assembly) $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+#57159097
+
+source /nbi/software/staging/RCSUPPORT-2452/stagingloader
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+cd $(dirname $Assembly)/merqury/
+spectra_cn=$(ls *.spectra-cn.hist)
+cn_only_hist=$(ls *.only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_1000 -z $cn_only_hist -m 1000 -n 4000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_300 -z $cn_only_hist -m 300 -n 4000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_100 -z $cn_only_hist -m 100 -n 4000000 
+spectra_asm=$(ls *.spectra-asm.hist)
+asm_only_host=$(ls *.dist_only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_1000 -z $asm_only_host -m 1000 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_300 -z $asm_only_host -m 300 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_100 -z $asm_only_host -m 100 -n 6000000 
+
+cd $(dirname $Assembly)/merqury/HiFi
+spectra_cn=$(ls *.spectra-cn.hist)
+cn_only_hist=$(ls *.only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_1000 -z $cn_only_hist -m 1000 -n 12500000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_300 -z $cn_only_hist -m 300 -n 12500000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_100 -z $cn_only_hist -m 100 -n 12500000 
+spectra_asm=$(ls *.spectra-asm.hist)
+asm_only_host=$(ls *.dist_only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_1000 -z $asm_only_host -m 1000 -n 16000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_300 -z $asm_only_host -m 300 -n 16000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_100 -z $asm_only_host -m 100 -n 16000000 
+
+cd $(dirname $Assembly)/merqury/HiC
+spectra_cn=$(ls *.spectra-cn.hist)
+cn_only_hist=$(ls *.only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_1000 -z $cn_only_hist -m 100 -n 30000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_300 -z $cn_only_hist -m 30 -n 30000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_100 -z $cn_only_hist -m 10 -n 30000000 
+spectra_asm=$(ls *.spectra-asm.hist)
+asm_only_host=$(ls *.dist_only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_1000 -z $asm_only_host -m 100 -n 20000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_300 -z $asm_only_host -m 30 -n 20000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_100 -z $asm_only_host -m 10 -n 20000000 
+
+cd $(dirname $Assembly)/merqury/TellSeq
+spectra_cn=$(ls *.spectra-cn.hist)
+cn_only_hist=$(ls *.only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_1000 -z $cn_only_hist -m 1000 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_300 -z $cn_only_hist -m 300 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_100 -z $cn_only_hist -m 100 -n 6000000 
+spectra_asm=$(ls *.spectra-asm.hist)
+asm_only_host=$(ls *.dist_only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_1000 -z $asm_only_host -m 1000 -n 10000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_300 -z $asm_only_host -m 300 -n 10000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_100 -z $asm_only_host -m 100 -n 10000000 
+#57192972
+
+#NOTE: meryl databases take up a lot of space so remove after using them
+rm -r /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/meryl/HiC/T_apicales_880m_29_3_3.0_0.75.meryl
+rm -r /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/meryl/HiFi/T_apicales_880m_29_3_3.0_0.75.meryl
+rm -r /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/meryl/Tellseq/T_apicales_880m_29_3_3.0_0.75.meryl
+rm -r /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/meryl/T_apicales_880m_29_3_3.0_0.75.meryl
+
+######################################################################################################################################################################
+source /nbi/software/staging/RCSUPPORT-2452/stagingloader
+for Reads in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_*/TellSeq/longranger/*.fastq.gz); do
+OutDir=$(dirname $Reads)/meryl
+mkdir $OutDir
+meryl k=21 count output ${OutDir}/$(basename $Reads | sed 's@.fastq.gz@@g').meryl $Reads 
+done
+#57186506
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+mkdir -p $(dirname $Assembly)/meryl/Tellseq_trimmed
+meryl union-sum output $(dirname $Assembly)/meryl/Tellseq_trimmed/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger/meryl/*.meryl
+
+mkdir -p $(dirname $Assembly)/merqury/Tellseq_trimmed
+cd $(dirname $Assembly)/merqury/Tellseq_trimmed
+ln -s $(dirname $Assembly)/meryl/Tellseq_trimmed/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+ln -s $Assembly
+meryl histogram $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl.hist
+merqury.sh $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl/ $(basename $Assembly) $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+rm -r $(dirname $Assembly)/meryl/Tellseq_trimmed/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+
+spectra_cn=$(ls *.spectra-cn.hist)
+cn_only_hist=$(ls *.only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_1000 -z $cn_only_hist -m 1000 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_300 -z $cn_only_hist -m 300 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_100 -z $cn_only_hist -m 100 -n 6000000 
+spectra_asm=$(ls *.spectra-asm.hist)
+asm_only_host=$(ls *.dist_only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_1000 -z $asm_only_host -m 1000 -n 10000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_300 -z $asm_only_host -m 300 -n 10000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_100 -z $asm_only_host -m 100 -n 10000000 
+
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
+mkdir temp
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi temp/.
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC temp/.
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger temp/.
+mkdir -p $(dirname $Assembly)/meryl/All_Tellseq_trimmed
+meryl union-sum output $(dirname $Assembly)/meryl/All_Tellseq_trimmed/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl temp/*/meryl/*.meryl
+rm -r temp
+
+mkdir -p $(dirname $Assembly)/merqury/All_Tellseq_trimmed
+cd $(dirname $Assembly)/merqury/All_Tellseq_trimmed
+ln -s $(dirname $Assembly)/meryl/All_Tellseq_trimmed/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+ln -s $Assembly
+meryl histogram $(dirname $Assembly)/meryl/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl.hist
+merqury.sh $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl/ $(basename $Assembly) $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+rm -r $(dirname $Assembly)/meryl/All_Tellseq_trimmed/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').meryl
+
+spectra_cn=$(ls *.spectra-cn.hist)
+cn_only_hist=$(ls *.only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_1000 -z $cn_only_hist -m 1000 -n 4000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_300 -z $cn_only_hist -m 300 -n 4000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_cn -o $(echo $spectra_cn | sed 's@.hist@@g')_100 -z $cn_only_hist -m 100 -n 4000000 
+spectra_asm=$(ls *.spectra-asm.hist)
+asm_only_host=$(ls *.dist_only.hist)
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_1000 -z $asm_only_host -m 1000 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_300 -z $asm_only_host -m 300 -n 6000000 
+Rscript /opt/software/merqury/plot/plot_spectra_cn.R -f $spectra_asm -o $(echo $spectra_asm | sed 's@.hist@@g')_100 -z $asm_only_host -m 100 -n 6000000 
+#57195977
+
+#NOTE: meryl databases take up a lot of space so remove after using them
+rm /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_*/*/meryl/*.meryl/*
+rm /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_*/TellSeq/longranger/meryl/*.meryl/*
+```
 #### Blobtools
 Blobtools with Hifi reads
 ```bash
 #alignment of reads to unfiltered assembly
 ProgDir=~/git_repos/Wrappers/NBI
-Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
-OutDir=$(dirname $Reference)/minimap2
-Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutDir=$(dirname $Assembly)/minimap2
+Outfile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
 Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
 Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
 mkdir $OutDir
-sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Reference $Read1 $Read2 #56939444
+sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2 #56939444
+sbatch $ProgDir/run_qualimap.sh $(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam $Assembly $OutDir #57111022
 
 #Blast
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
 OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
-OutDir=$(dirname $Assembly)/blast2.12.0
-Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_23092023/5/nt
+OutDir=$(dirname $Assembly)/blast2.12.0/3
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_premade_02102023/nt
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_blastn.sh $Assembly $Database $OutDir $OutPrefix 
-#57175082, 57182846
-
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
-OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
-OutDir=$(dirname $Assembly)/blast2.7.1
-Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_23092023/4/nt
-ProgDir=~/git_repos/Wrappers/NBI
-mkdir $OutDir
-sbatch $ProgDir/run_blastn_2.7.1.sh $Assembly $Database $OutDir $OutPrefix 
-#57193492
+#57175082, 57182846,57308571,57398067,57044987
+#parse_seqids is required for -taxid_map however when running databases created with -parse_seqids blast runs fail with c++ errors
 
 #BUSCO - keeping output files
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa); do
@@ -662,8 +866,51 @@ for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ass
     OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
     sbatch $ProgDir/run_busco_keep.sh $Genome $Database $OutDir $OutFile 
 done 
-#57207206
+#57207206, 57307068, 57307079, 57307096
 
+#Diamond blast - BUSCO regions
+source package b0ed0698-358b-4c9b-9d21-603ea8d6e478
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+BUSCOgff=$(dirname $Assembly)/BUSCO/hemiptera_odb10/run_hemiptera_odb10/metaeuk_output/rerun_results/T_apicales_880m_29_3_3_hemiptera_odb10.fa.gff
+awk '$3 == "gene" {print $0}' $BUSCOgff > $(echo $BUSCOgff | sed 's@.fa.gff@_genes_only.fa.gff@g')
+bedtools getfasta -fi $Assembly -bed $(echo $BUSCOgff | sed 's@.fa.gff@_genes_only.fa.gff@g') -fo $(dirname $BUSCOgff)/busco_regions.fasta
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+OutDir=$(dirname $Assembly)/diamond0.9.29_blastx/BUSCO_regions
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/uniprot_01102023/Uniprot_01102023_reference_proteomes.dmnd
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir -p $OutDir
+sbatch $ProgDir/run_diamond_blastx.sh $(dirname $BUSCOgff)/busco_regions.fasta $Database $OutDir $OutPrefix 
+#57307105, 57315793
+
+#Diamond blast - whole genome
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/fasta_to_bed.py $Assembly > $(dirname $Assembly)/$(basename $Assembly | sed 's@.fa@.bed@g')
+bedtools makewindows -g $(dirname $Assembly)/$(basename $Assembly | sed 's@.fa@.bed@g') -w 25000 > $(dirname $Assembly)/25000regions.bed
+bedtools intersect -a $(dirname $Assembly)/25000regions.bed -b $(echo $BUSCOgff | sed 's@.fa.gff@_genes_only.fa.gff@g') -wa -u > $(dirname $BUSCOgff)/overlapping_windows.bed
+bedtools subtract -a $(dirname $Assembly)/25000regions.bed -b $(dirname $BUSCOgff)/overlapping_windows.bed > $(dirname $Assembly)/buscofiltered25000regions.bed
+bedtools getfasta -fi $Assembly -bed $(dirname $Assembly)/buscofiltered25000regions.bed -fo $(dirname $Assembly)/buscofiltered25000regions.fasta
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+OutDir=$(dirname $Assembly)/diamond0.9.29_blastx/nonBUSCO_regions
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/uniprot_01102023/Uniprot_01102023_reference_proteomes.dmnd
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir -p $OutDir
+sbatch $ProgDir/run_diamond_blastx.sh $(dirname $Assembly)/buscofiltered25000regions.fasta $Database $OutDir $OutPrefix 
+#57307106, 57315794
+
+BUSCODiamond=$(dirname $Assembly)/diamond0.9.29_blastx/BUSCO_regions/*.diamondblastx.out
+ElseDiamond=$(dirname $Assembly)/diamond0.9.29_blastx/nonBUSCO_regions/*.diamondblastx.out
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/normalise_blast.py $BUSCODiamond $(echo $BUSCODiamond | sed 's@x.out@x_2.out@g')
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/normalise_blast.py $ElseDiamond $(echo $ElseDiamond | sed 's@x.out@x_2.out@g')
+
+#Tiara
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+OutDir=$(dirname $Assembly)/tiara
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_tiara.sh $Assembly $OutDir $OutPrefix
+#57401241
+
+#Blobtools
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
 MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
 BlastFile=$(dirname $Assembly)/blast2.12.0/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
@@ -674,34 +921,143 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_blobplot.sh $Assembly $MappingFile $BlastFile $OutDir $OutPrefix $ColourFile
 #57160576, 57193462
+
+#Blobtoolkit
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+Record_type=contig
+MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/3/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+BUSCOFile=$(dirname $Assembly)/BUSCO/hemiptera_odb10/run_hemiptera_odb10/full_table.tsv
+BUSCODiamond=$(dirname $Assembly)/diamond0.9.29_blastx/BUSCO_regions/*.diamondblastx_2.out
+ElseDiamond=$(dirname $Assembly)/diamond0.9.29_blastx/nonBUSCO_regions/*.diamondblastx_2.out
+Tiara=$(dirname $Assembly)/tiara/*.tiara
+OutDir=$(dirname $Assembly)/blobtoolkit4.2.1
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+Genus=Trioza
+Species=apicalis
+TaxID=872318
+alias=Tapi88029330075
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blobtoolkit4.2.1.sh $Assembly $Record_type $MappingFile $BlastFile $BUSCOFile $BUSCODiamond $ElseDiamond $Tiara $OutDir $OutPrefix $Genus $Species $TaxID $alias
+#57127861
+
+cp -r $OutDir/Tapi88029330075_blobdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs/.
+#The contents of /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs were subsequently copied to local machine WSL-Ubuntu: \\wsl.localhost\Ubuntu\home\did23faz
+```
+```bash
+conda activate btk
+#From \\wsl.localhost\Ubuntu\home\did23faz
+apptainer exec blobtoolkit.sif blobtools host BlobDirs
 ```
 Blobtools with HiC reads
 ```bash
 #alignment of reads to unfiltered assembly
 ProgDir=~/git_repos/Wrappers/NBI
-Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
-OutDir=$(dirname $Reference)/bwa
-Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')_HiC
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_HiC
 Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
 mkdir $OutDir
-sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Reference $Read1 $Read2 
+sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Assembly $Read1 $Read2 
 #57207042
+MappingFile=$(ls ${OutDir}/*_HiC.bam)
+sbatch $ProgDir/run_qualimap.sh $MappingFile $Assembly $OutDir #57111435
+
+#Blobtoolkit
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+Record_type=contig
+MappingFile=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_HiC.bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/3/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+BUSCOFile=$(dirname $Assembly)/BUSCO/hemiptera_odb10/run_hemiptera_odb10/full_table.tsv
+BUSCODiamond=$(dirname $Assembly)/diamond0.9.29_blastx/BUSCO_regions/*.diamondblastx_2.out
+ElseDiamond=$(dirname $Assembly)/diamond0.9.29_blastx/nonBUSCO_regions/*.diamondblastx_2.out
+Tiara=$(dirname $Assembly)/tiara/*.tiara
+OutDir=$(dirname $Assembly)/blobtoolkit4.2.1
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+Genus=Trioza
+Species=apicalis
+TaxID=872318
+alias=Tapi88029330075_HiC
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blobtoolkit4.2.1.sh $Assembly $Record_type $MappingFile $BlastFile $BUSCOFile $BUSCODiamond $ElseDiamond $Tiara $OutDir $OutPrefix $Genus $Species $TaxID $alias
+#57217721
+
+cp -r $OutDir/Tapi88029330075_HiC_blobdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs/.
 ```
 Blobtools with TellSeq reads
 ```bash
 #alignment of reads to unfiltered assembly
 ProgDir=~/git_repos/Wrappers/NBI
-Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
-OutDir=$(dirname $Reference)/bwa
-Outfile=$(basename $Reference | sed 's@.bp.p_ctg.fa@@g')_Tellseq
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq
 Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R2.fastq.gz
 Read3=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
 Read4=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
 mkdir $OutDir
-sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Reference $Read1 $Read2 $Read3 $Read4 
+sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Assembly $Read1 $Read2 $Read3 $Read4 
 #57207047
+MappingFile=$(ls ${OutDir}/*_Tellseq.bam)
+sbatch $ProgDir/run_qualimap.sh $MappingFile $Assembly $OutDir #57111437
+
+#Blobtoolkit
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+Record_type=contig
+MappingFile=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq.bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/3/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+BUSCOFile=$(dirname $Assembly)/BUSCO/hemiptera_odb10/run_hemiptera_odb10/full_table.tsv
+BUSCODiamond=$(dirname $Assembly)/diamond0.9.29_blastx/BUSCO_regions/*.diamondblastx_2.out
+ElseDiamond=$(dirname $Assembly)/diamond0.9.29_blastx/nonBUSCO_regions/*.diamondblastx_2.out
+Tiara=$(dirname $Assembly)/tiara/*.tiara
+OutDir=$(dirname $Assembly)/blobtoolkit4.2.1
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+Genus=Trioza
+Species=apicalis
+TaxID=872318
+alias=Tapi88029330075_Tellseq
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blobtoolkit4.2.1.sh $Assembly $Record_type $MappingFile $BlastFile $BUSCOFile $BUSCODiamond $ElseDiamond $Tiara $OutDir $OutPrefix $Genus $Species $TaxID $alias
+#57218783
+#########################################################################################################################
+ProgDir=~/git_repos/Wrappers/NBI
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq_trimmed
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger/Trapi_T505_barcoded.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger/Trapi_T507_barcoded.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $Read1 $Read2 
+#57186561
+MappingFile=$(ls ${OutDir}/*_Tellseq_trimmed.bam)
+sbatch $ProgDir/run_qualimap.sh $MappingFile $Assembly $OutDir #57317734
+
+#Blobtoolkit
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+Record_type=contig
+MappingFile=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq_trimmed.bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/3/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+BUSCOFile=$(dirname $Assembly)/BUSCO/hemiptera_odb10/run_hemiptera_odb10/full_table.tsv
+BUSCODiamond=$(dirname $Assembly)/diamond0.9.29_blastx/BUSCO_regions/*.diamondblastx_2.out
+ElseDiamond=$(dirname $Assembly)/diamond0.9.29_blastx/nonBUSCO_regions/*.diamondblastx_2.out
+Tiara=$(dirname $Assembly)/tiara/*.tiara
+OutDir=$(dirname $Assembly)/blobtoolkit4.2.1
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+Genus=Trioza
+Species=apicalis
+TaxID=872318
+alias=Tapi88029330075_Tellseq_trimmed
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_blobtoolkit4.2.1.sh $Assembly $Record_type $MappingFile $BlastFile $BUSCOFile $BUSCODiamond $ElseDiamond $Tiara $OutDir $OutPrefix $Genus $Species $TaxID $alias
+#57331164
+
+cp -r $OutDir/Tapi88029330075_Tellseq_blobdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs/.
+cp -r $OutDir/Tapi88029330075_Tellseq_trimmed_blobdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs/.
 ```
 #### Kraken 
 ```bash
@@ -713,6 +1069,625 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_kraken2.sh $Assembly $Database $OutDir $OutPrefix 2>&1 >> ${OutDir}/log.txt
 ```
+Contigs classified to non-Arthropoda phylum level were considered contamininants. Contigs classified to Arthropoda taxa or above (eg. Eukaryota) were considered Psyllid contigs.
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+cd $(dirname $Assembly)/kraken2.1.3/
+nano contaminantlist.txt #Edit with contaminant names
+grep -f contaminantlist.txt $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_kraken2nt_output.txt > contaminantcontigs.txt
+awk -F'\t' '{print $2}' contaminantcontigs.txt > contaminantcontignames.txt
+rm contaminantcontigs.txt
+seqtk subseq $Assembly contaminantcontignames.txt | gzip > kraken2_contaminants.fa.gz
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/filter.py  $Assembly contaminantcontignames.txt > filtered_$(basename $Assembly)
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' filtered_$(basename $Assembly) > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_krakenfiltered.fa
+rm filtered_$(basename $Assembly)
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/kraken2.1.3/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_krakenfiltered.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+##### Tiara
+Contigs identified as bacteria and archaea do not form a cluster, however several are very large, there is only one contig that is identified as bacteria by tiara and arthropoda by blast
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+cd $(dirname $Assembly)/tiara/
+nano contaminantcontignames.txt #edit with bacteria and archaea contig names from tiara
+seqtk subseq $Assembly contaminantcontignames.txt | gzip > tiara_contaminants.fa.gz
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/filter.py  $Assembly contaminantcontignames.txt > filtered_$(basename $Assembly)
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' filtered_$(basename $Assembly) > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_tiarafiltered.fa
+rm filtered_$(basename $Assembly)
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/tiara/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')*filtered.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+##### BTK
+Contigs not within the main arthropoda cluster in blobtoolkit were highlighted for removal
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+cd $(dirname $Assembly)/blobtoolkit4.2.1/
+nano contaminantcontignames.txt #edit with contig names from blobtoolkit 
+seqtk subseq $Assembly contaminantcontignames.txt | gzip > btk_contaminants.fa.gz
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/filter.py  $Assembly contaminantcontignames.txt > filtered_$(basename $Assembly)
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' filtered_$(basename $Assembly) > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_btkfiltered.fa
+rm filtered_$(basename $Assembly)
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/blobtoolkit4.2.1/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')*filtered.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+Sliders:
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+cd $(dirname $Assembly)/blobtoolkit4.2.1/
+nano contignames2.txt #edit with contig names from blobtoolkit 
+grep -A 1 -F -f contignames2.txt $Assembly > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_btkfiltered2.fa
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/blobtoolkit4.2.1/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')*filtered2.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+
+grep '>' $Assembly | sed 's@>@@g' > $(dirname $Assembly)/allcontigs.txt
+awk 'NR==FNR {busco[$0]=1; next} !($0 in busco)' "$(dirname $Assembly)/blobtoolkit4.2.1/contignames2.txt" "$(dirname $Assembly)/allcontigs.txt" > "$(dirname $Assembly)/blobtoolkit4.2.1/contaminantcontignames.txt"
+```
+##### blastn
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+cd $(dirname $Assembly)/blast2.12.0/
+nano contaminantcontignames.txt #edit with contig names which blast to non-ascomycota phyla 
+seqtk subseq $Assembly contaminantcontignames.txt | gzip > blast_contaminants.fa.gz
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/filter.py $Assembly contaminantcontignames.txt > filtered_$(basename $Assembly)
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' filtered_$(basename $Assembly) > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_blastfiltered.fa
+rm filtered_$(basename $Assembly)
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/blast2.12.0/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')*filtered.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+##### All
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+cd $(dirname $Assembly)
+cat kraken2.1.3/contaminantcontignames.txt > contaminantcontignames.txt
+cat tiara/contaminantcontignames.txt >> contaminantcontignames.txt
+cat blobtoolkit4.2.1/contaminantcontignames.txt >> contaminantcontignames.txt
+cat blast2.12.0/contaminantcontignames.txt >> contaminantcontignames.txt
+
+seqtk subseq $Assembly contaminantcontignames.txt | gzip > contaminants.fa.gz
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/filter.py $Assembly contaminantcontignames.txt > filtered_$(basename $Assembly)
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' filtered_$(basename $Assembly) > $(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_filtered.fa
+rm filtered_$(basename $Assembly)
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')*filtered.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/blobtoolkit4.2.1/T_apicales_880m_29_3_3.0_0.75_btkfiltered2.fa
+cd $(dirname $Assembly)
+cd ..
+cat kraken2.1.3/contaminantcontignames.txt > contaminantcontignames.txt
+cat tiara/contaminantcontignames.txt >> contaminantcontignames.txt
+cat blast2.12.0/contaminantcontignames.txt >> contaminantcontignames.txt
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/filter.py $Assembly contaminantcontignames.txt > filtered_$(basename $Assembly)
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' filtered_$(basename $Assembly) > $(basename $Assembly | sed 's@_btkfiltered2.fa@@g')_allfiltered.fa
+rm filtered_$(basename $Assembly)
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/../$(basename $Assembly | sed 's@_btkfiltered2.fa@@g')_allfiltered.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+T_apicales_880m_29_3_3.0_0.75_hemiptera_odb10_short_summary.txt
+        C:94.7%[S:26.3%,D:68.4%],F:2.7%,M:2.6%,n:2510
+
+T_apicales_880m_29_3_3.0_0.75_krakenfiltered_hemiptera_odb10_short_summary.txt
+        C:94.5%[S:26.5%,D:68.0%],F:2.7%,M:2.8%,n:2510
+T_apicales_880m_29_3_3.0_0.75_blastfiltered_hemiptera_odb10_short_summary.txt
+        C:94.4%[S:26.8%,D:67.6%],F:2.7%,M:2.9%,n:2510
+T_apicales_880m_29_3_3.0_0.75_tiarafiltered_hemiptera_odb10_short_summary.txt
+        C:94.7%[S:26.3%,D:68.4%],F:2.7%,M:2.6%,n:2510
+
+T_apicales_880m_29_3_3.0_0.75_btkfiltered_hemiptera_odb10_short_summary.txt
+        C:94.6%[S:26.2%,D:68.4%],F:2.7%,M:2.7%,n:2510
+T_apicales_880m_29_3_3.0_0.75_filtered_hemiptera_odb10_short_summary.txt
+        C:94.3%[S:26.7%,D:67.6%],F:2.7%,M:3.0%,n:2510
+
+T_apicales_880m_29_3_3.0_0.75_btkfiltered2_hemiptera_odb10_short_summary.txt
+        C:94.7%[S:26.3%,D:68.4%],F:2.7%,M:2.6%,n:2510
+T_apicales_880m_29_3_3.0_0.75_allfiltered_hemiptera_odb10_short_summary.txt
+        C:94.4%[S:26.8%,D:67.6%],F:2.7%,M:2.9%,n:2510
+```bash
+#BUSCO - keeping output files
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    sbatch $ProgDir/run_busco_keep.sh $Genome $Database $OutDir $OutFile 
+done 
+#57044709
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+    sbatch $ProgDir/run_busco_keep.sh $Genome $Database $OutDir $OutFile 
+done 
+#57044749
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+for file in $(ls $(dirname $Assembly)/BUSCO/*_odb10/run_*_odb10/full_table.tsv); do
+grep 'Complete\|Duplicated' $file | awk '!/^#/ {split($3, arr, ":"); print arr[1]}' >> $(dirname $Assembly)/BUSCO/buscocontignames.txt
+done
+
+cd $(dirname $Assembly)
+cat kraken2.1.3/contaminantcontignames.txt > contaminantcontignames.txt
+cat tiara/contaminantcontignames.txt >> contaminantcontignames.txt
+cat blast2.12.0/contaminantcontignames.txt >> contaminantcontignames.txt
+cat blobtoolkit4.2.1/contaminantcontignames.txt >> contaminantcontignames.txt
+mkdir filtered
+awk 'NR==FNR {busco[$0]=1; next} !($0 in busco)' "$(dirname $Assembly)/BUSCO/buscocontignames.txt" "$(dirname $Assembly)/contaminantcontignames.txt" | sort | uniq > "$(dirname $Assembly)/filtered/contaminantcontignames.txt"
+cat $(dirname $Assembly)/filtered/contaminantcontignames.txt | wc -l #206
+
+seqtk subseq $Assembly $(dirname $Assembly)/filtered/contaminantcontignames.txt | gzip > $(dirname $Assembly)/contaminants.fa.gz
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/filter.py $Assembly $(dirname $Assembly)/filtered/contaminantcontignames.txt > $(dirname $Assembly)/filtered/filtered_$(basename $Assembly)
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' $(dirname $Assembly)/filtered/filtered_$(basename $Assembly) > $(dirname $Assembly)/filtered/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_filtered.fa
+rm $(dirname $Assembly)/filtered/filtered_$(basename $Assembly)
+
+#BUSCO
+for Genome in $(ls $(dirname $Assembly)/filtered/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_filtered.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+T_apicales_880m_29_3_3.0_0.75_filtered_hemiptera_odb10_short_summary
+  C:94.7%[S:26.3%,D:68.4%],F:2.7%,M:2.6%,n:2510
+#### Pilon
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+Alignment=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq_trimmed.bam
+source package 638df626-d658-40aa-80e5-14a275b7464b
+samtools sort -o $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') $Alignment
+rm $Alignment
+
+source switch-institute ei
+source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
+source package /tgac/software/testing/bin/picardtools-2.1.1
+chmod 777 $(dirname $Alignment)
+java17 -jar /tgac/software/testing/bin/core/../..//picardtools/2.1.1/x86_64/bin/picard.jar MarkDuplicates I=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') O=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g') M=$(dirname $Assembly)/marked_dup_metrics.txt
+rm $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g')
+cd $(dirname $Alignment)
+samtools index $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g')
+```
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+Alignment=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_Tellseq_trimmed.bam
+Index=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_Tellseq_trimmed.bam.bai
+OutDir=$(dirname $Assembly)/pilon
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
+#57227855
+```
+
+#### Break10X
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/10x
+OutDir=$(dirname $Assembly)/break10x
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_break10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57116336
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/T_apicales_880m_29_3_3.0_0.75_break.fa
+#Purge with Tellseq (Illumina) Reads:
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/bwa/T_apicales_880m_29_3_3.0_0.75_sorted_markdups_Tellseq_trimmed.bam
+Type=short
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')_TellSeqPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57228619
+```
+
+#### Purge Dups
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa
+#Purge with Tellseq (Illumina) Reads:
+MappingFile=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq_trimmed.bam
+Type=short
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_TellSeqPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57347671
+
+#Purge with HiFi reads:
+MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
+Type=long
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_HiFiPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57344866
+```
+```bash
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/T_apicales_880m_29_3_3.0_0.75_*Purged.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+T_apicales_880m_29_3_3.0_0.75_filtered_hemiptera_odb10_short_summary
+  C:94.7%[S:26.3%,D:68.4%],F:2.7%,M:2.6%,n:2510
+
+T_apicales_880m_29_3_3.0_0.75_HiFiPurged_arthropoda_odb10_short_summary.txt
+        C:93.8%[S:74.6%,D:19.2%],F:3.5%,M:2.7%,n:1013
+T_apicales_880m_29_3_3.0_0.75_HiFiPurged_hemiptera_odb10_short_summary.txt
+        C:93.8%[S:76.2%,D:17.6%],F:3.2%,M:3.0%,n:2510
+T_apicales_880m_29_3_3.0_0.75_HiFiPurged_insecta_odb10_short_summary.txt
+        C:93.2%[S:75.6%,D:17.6%],F:3.4%,M:3.4%,n:1367
+T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_arthropoda_odb10_short_summary.txt
+        C:92.8%[S:89.1%,D:3.7%],F:4.0%,M:3.2%,n:1013
+T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_hemiptera_odb10_short_summary.txt
+        C:93.3%[S:89.4%,D:3.9%],F:3.5%,M:3.2%,n:2510
+T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_insecta_odb10_short_summary.txt
+        C:92.1%[S:88.5%,D:3.6%],F:4.2%,M:3.7%,n:1367
+
+Purging with TellSeq reads seems to be more effective than using HiFi reads
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/tellseq
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/T_apicales_880m_29_3_3.0_0.75_TellSeqPurged.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/tellseq/.
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/hifi
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/T_apicales_880m_29_3_3.0_0.75_HiFiPurged.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/hifi/.
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/*/*Purged.fa); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done #57138192,3
+```
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/T_apicales_880m_29_3_3.0_0.75_filtered.fa
+#Purge with Tellseq (Illumina) Reads:
+MappingFile=$(dirname $Assembly)/../bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq_trimmed.bam
+Type=short
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')_TellSeqPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57051896
+
+#Purge with HiFi reads:
+MappingFile=$(dirname $Assembly)/../minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
+Type=long
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')_HiFiPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57051897
+```
+```bash
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/T_apicales_880m_29_3_3.0_0.75_*Purged.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+```
+T_apicales_880m_29_3_3.0_0.75_filtered_hemiptera_odb10_short_summary
+  C:94.7%[S:26.3%,D:68.4%],F:2.7%,M:2.6%,n:2510
+
+T_apicales_880m_29_3_3.0_0.75_filtered_HiFiPurged_arthropoda_odb10_short_summary.txt
+        C:92.8%[S:89.1%,D:3.7%],F:4.0%,M:3.2%,n:1013
+T_apicales_880m_29_3_3.0_0.75_filtered_HiFiPurged_hemiptera_odb10_short_summary.txt
+        C:93.2%[S:89.4%,D:3.8%],F:3.5%,M:3.3%,n:2510
+T_apicales_880m_29_3_3.0_0.75_filtered_HiFiPurged_insecta_odb10_short_summary.txt
+        C:92.2%[S:88.5%,D:3.7%],F:4.1%,M:3.7%,n:1367
+T_apicales_880m_29_3_3.0_0.75_filtered_TellSeqPurged_arthropoda_odb10_short_summary.txt
+        C:92.8%[S:89.1%,D:3.7%],F:4.0%,M:3.2%,n:1013
+T_apicales_880m_29_3_3.0_0.75_filtered_TellSeqPurged_hemiptera_odb10_short_summary.txt
+        C:93.2%[S:89.4%,D:3.8%],F:3.5%,M:3.3%,n:2510
+T_apicales_880m_29_3_3.0_0.75_filtered_TellSeqPurged_insecta_odb10_short_summary.txt
+        C:92.2%[S:88.5%,D:3.7%],F:4.1%,M:3.7%,n:1367
+
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/tellseq
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/T_apicales_880m_29_3_3.0_0.75_filtered_TellSeqPurged.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/tellseq/.
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/hifi
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/T_apicales_880m_29_3_3.0_0.75_filtered_HiFiPurged.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/hifi/.
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/filtered/purge_dups/*/*Purged.fa); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done #57138188,9
+```
+#### Polish
+Improve cv from Merqury before running MitoHiFi
+Polish ideally with good coverage of illumina reads
+
+#### MitoHiFi
+```bash
+Assembly=
+ReferenceFasta=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/NCBI/Trant_mito_NC_038141.1.fasta
+ReferenceGenebank=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/NCBI/Trant_mito_NC_038141.1.gb
+PercentOverlap=50
+Code=5
+Kingdom=animal
+Good_Reference=
+OutDir=
+OutFile=
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_mitohifi_contigs.sh $Assembly $ReferenceFasta $ReferenceGenebank $PercentOverlap $Code $Kingdom $Good_Reference $OutDir $OutFile
+
+Assembly=
+ReferenceFasta=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/NCBI/Turt_mito_NC_038113.1.fasta
+ReferenceGenebank=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/NCBI/Turt_mito_NC_038113.1.gb
+PercentOverlap=50
+Code=5
+Kingdom=animal
+Good_Reference=
+OutDir=
+OutFile=
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_mitohifi_contigs.sh $Assembly $ReferenceFasta $ReferenceGenebank $PercentOverlap $Code $Kingdom $Good_Reference $OutDir $OutFile
+```
 #### Purge assembly or remove haplotigs in pretext?
 ```bash
 source purge_dups-git05062020
@@ -721,7 +1696,20 @@ split_fa Trapi_default.p_ctg.fa > Trapi_default.p_ctg.fa.split
 #### Scaffold with tellseq reads
 
 #### 3dDNA
-
+#### Canu
+```bash
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiFi); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    Run1=$(ls $ReadDir/apicales_hifi-reads.fastq.gz)
+    Run2=$(ls $ReadDir/apicales_hifi-3rdSMRTcell.fastq.gz)
+    OutDir=$(echo $ReadDir|sed 's@raw_data@assembly/genome@g'|sed 's@HiFi@canu@g')/650m
+    OutFile=T_apicales_650m
+    Genomesize=650m
+    DataType=pacbio-hifi
+    mkdir -p $OutDir
+    sbatch $ProgDir/run_canu.sh $OutDir $OutFile $Genomesize $DataType $Run1 $Run2
+done #57221674
+``` 
 
 
 
