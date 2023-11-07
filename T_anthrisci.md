@@ -1374,58 +1374,8 @@ done
 ```
 T_anthrisci_820m_48_1_10.0_0.25_filtered_hemiptera_odb10_short_summary
   C:92.3%[S:72.6%,D:19.7%],F:3.5%,M:4.2%,n:2510
-#### Pilon
-```bash
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
-Alignment=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq_trimmed.bam
-source package 638df626-d658-40aa-80e5-14a275b7464b
-samtools sort -o $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') $Alignment
-rm $Alignment
 
-source switch-institute ei
-source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
-source package /tgac/software/testing/bin/picardtools-2.1.1
-chmod 777 $(dirname $Alignment)
-java17 -jar /tgac/software/testing/bin/core/../..//picardtools/2.1.1/x86_64/bin/picard.jar MarkDuplicates I=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') O=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g') M=$(dirname $Assembly)/marked_dup_metrics.txt
-rm $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g')
-cd $(dirname $Alignment)
-samtools index $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g')
-```
-```bash
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
-Alignment=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_Tellseq_trimmed.bam
-Index=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_Tellseq_trimmed.bam.bai
-OutDir=$(dirname $Assembly)/pilon
-OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
-ProgDir=~/git_repos/Wrappers/NBI
-mkdir $OutDir
-sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
-#57227862
-```
-
-#### Break10X
-```bash
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
-ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/10x
-OutDir=$(dirname $Assembly)/break10x
-OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
-ProgDir=~/git_repos/Wrappers/NBI
-mkdir $OutDir
-sbatch $ProgDir/run_break10x.sh $Assembly $ReadDir $OutDir $OutPrefix
-#57116339
-
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
-#Purge with Tellseq (Illumina) Reads:
-MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/bwa/T_anthrisci_820m_48_1_10.0_0.25_sorted_markdups_Tellseq_trimmed.bam
-Type=short
-OutDir=$(dirname $Assembly)/purge_dups
-OutPrefix=$(basename $Assembly | sed 's@.fa@@')_TellSeqPurged
-ProgDir=~/git_repos/Wrappers/NBI
-mkdir $OutDir
-sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
-#57228612
-```
-#### Purge Dups
+### Purge Dups
 ```bash
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
 #Purge with Tellseq (Illumina) Reads:
@@ -1438,6 +1388,9 @@ mkdir $OutDir
 sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
 #57347690
 
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4384    4384    766     6088    104935  230299  446600  2788957 595.6e6 T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa
+
 #Purge with HiFi reads:
 MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
 Type=long
@@ -1447,6 +1400,9 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
 #57344889
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4372    4372    808     8481    105996  228568  430982  1522448 614.8e6 T_anthrisci_820m_48_1_10.0_0.25_HiFiPurged.fa
 ```
 ```bash
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_*Purged.fa); do
@@ -1534,7 +1490,7 @@ ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/
 
 for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/*/*Purged.fa); do
 sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
-done #57138257,8
+done #57291752,3
 ```
 ```bash
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/filtered/T_anthrisci_820m_48_1_10.0_0.25_filtered.fa
@@ -1548,6 +1504,9 @@ mkdir $OutDir
 sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
 #57051904
 
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4001    4001    725     8068    109745  235314  448219  2788957 571.2e6 T_anthrisci_820m_48_1_10.0_0.25_filtered_TellSeqPurged.fa
+
 #Purge with HiFi reads:
 MappingFile=$(dirname $Assembly)/../minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g').bam
 Type=long
@@ -1557,6 +1516,9 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
 #57051905
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4001    4001    725     8068    109745  235314  448219  2788957 571.2e6 T_anthrisci_820m_48_1_10.0_0.25_filtered_HiFiPurged.fa
 ```
 ```bash
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/filtered/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_*Purged.fa); do
@@ -1643,11 +1605,7 @@ ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/
 
 for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/filtered/purge_dups/*/*Purged.fa); do
 sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
-done #57138235,6
-```
-```bash
-source package /tgac/software/testing/bin/scaff10x-1.1
-scaff10x -nodes 32 -longread 1 -data input.dat ../purged.fa
+done #57291737,8
 ```
 ```bash
 for file in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_*/hifiasm_19.5/*/*/*/*/*/purge_dups/BUSCO/*); do
@@ -1655,6 +1613,863 @@ basename $file >> temp.txt
 grep 'C:' $file >> temp.txt
 done
 ```
+Purging with/without contaminants seems to make no difference to the final scores, neither does using Tellseq/Hifi reads.
+
+### Scaffolding
+Tellseq reads have are linked via 18bp barcodes, Tom Mathers has already used the conversion software prodived by Universal sequencing and the 4Mwith-alts-february-2016.txt barcode whitelist file to convert to 16bp barcoded versions of the reads that are compatible with 10x genomics linked read software. The files also have to be in a standardised naming format https://cdn.shopify.com/s/files/1/0654/0378/1341/files/100027-USG_TELL-Seq_Software_Roadmap_User_Guide_v1.0_4d2abbf8-3d19-4899-84c2-9a79594eb7f3.pdf?v=1684422029
+
+Scaff10X can now be used to scaffold the HiFi assembly contigs using the TellSeq reads.
+
+Longranger is run in order to remove the barcodes from the reads so that they can simly be treated as large insert illumina reads and used for assembly polishing.
+
+Purging should be done before scaffolding as presence of haplotigs will confuse scaffolder, however the order of pilon,scaff10x,break10x,YAHS or whether using at all will improve the assembly is unclear.
+
+#### 3DDNA
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa
+OutDir=$(dirname $Assembly)/3ddna
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
+#
+```
+
+#### 0
+Scaffolding without purging
+
+##### Scaff10X
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57234151
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#9147    9147    1071    6088    60145   214611  457160  2788957 829.7e6 output_scaffolds.fasta
+```
+##### YAHS
+Generate mapping file
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57245207
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57278990
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#8819    8819    773     1000    63856   270247  700275  2914693 829.7e6 T_anthrisci_820m_48_1_10.0_0.25_scaffolds_final.fa
+```
+#### 1
+Purge
+```bash
+#Already performed above
+```
+Scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57234129
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4353    4353    762     6088    106632  232287  447197  2788957 595.6e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57288677
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57297212
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1304    1304    5       1000    20.61e6 52.29e6 62.67e6 77e6    595.6e6 T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaff10xscaffolds_scaffolds_final.fa
+```
+YAHS -> Scaff10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57245203
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57279053, 57302560
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1305    1305    3       1000    20.16e6 74.73e6 120.4e6 120.4e6 595.6e6 T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57285519
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1297    1297    3       1000    20.16e6 74.73e6 120.4e6 120.4e6 595.6e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57298234
+
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds_mapped.PT.bam
+OutDir=$(dirname $Alignment)
+OutFile=$(basename $Alignment | sed 's@_mapped.PT.bam@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
+#57301306, 57303597
+
+#No dedup:
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap2.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57301397
+
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds.bam
+OutDir=$(dirname $Alignment)
+OutFile=$(basename $Alignment | sed 's@.bam@@')_nodedup
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
+#57333204
+```
+Remove 13 and 156:
+```python
+from Bio import SeqIO
+
+# Define the input and output filenames
+input_file = "/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds.fasta"
+output_file = "/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds_edit.fasta"
+
+# Define the list of contigs to remove
+contigs_to_remove = ["tarseq_13", "tarseq_156"]
+
+# Open the input and output files
+with open(input_file, "r") as input_handle, open(output_file, "w") as output_handle:
+    # Iterate over the records in the input FASTA file
+    for record in SeqIO.parse(input_handle, "fasta"):
+        # Check if the contig is not in the list of contigs to remove
+        if record.id not in contigs_to_remove:
+            # Write the record to the output file
+            SeqIO.write(record, output_handle, "fasta")
+```
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds_edit.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57308023
+
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds_edit_mapped.PT.bam
+OutDir=$(dirname $Alignment)
+OutFile=$(basename $Alignment | sed 's@.bam@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
+#57333147
+```
+#### 2
+Purge
+```bash
+#Already performed above
+```
+Pilon
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa
+Alignment=$(dirname $Assembly)/../bwa/$(basename $Assembly | sed 's@_TellSeqPurged.fa@@g')_Tellseq_trimmed.bam
+source package 638df626-d658-40aa-80e5-14a275b7464b
+samtools sort -o $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') $Alignment
+rm $Alignment
+
+source switch-institute ei
+source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
+source package /tgac/software/testing/bin/picardtools-2.1.1
+chmod 777 $(dirname $Alignment)
+java17 -jar /tgac/software/testing/bin/core/../..//picardtools/2.1.1/x86_64/bin/picard.jar MarkDuplicates I=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') O=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g') M=$(dirname $Assembly)/marked_dup_metrics.txt
+rm $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g')
+cd $(dirname $Alignment)
+samtools index $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g')
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa
+Alignment=$(dirname $Assembly)/../bwa/$(basename $Assembly | sed 's@_TellSeqPurged.fa@@g')_sorted_markdups_Tellseq_trimmed.bam
+Index=$(dirname $Assembly)/../bwa/$(basename $Assembly | sed 's@_TellSeqPurged.fa@@g')_sorted_markdups_Tellseq_trimmed.bam.bai
+OutDir=$(dirname $Assembly)/pilon
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
+#57234146
+```
+Scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa_pilon.fasta
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa_pilon.fasta@_pilon@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57234831
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4325    4325    752     6088    107835  235400  452506  2788759 595.3e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_pilon_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa_pilon.fasta@_pilon@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57297142
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_pilon_scaff10xscaffolds.fasta
+Alignment=
+Alignment_Index=
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#
+```
+YAHS -> Scaff10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa_pilon.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa_pilon.fasta@_pilon@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57245209
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa_pilon.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_pilon_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_pilon_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57279782
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1278    1278    4       1000    21.37e6 56.26e6 140e6   140e6   595.3e6 T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa_pilon_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/pilon/yahs/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.fa_pilon_scaffolds_final.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa_pilon@_pilon@' | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57297220
+```
+#### 3
+Break10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/break10x
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_break10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57234077
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#9790    9790    1366    6088    59062   173895  353115  2788957 829.7e6 T_anthrisci_820m_48_1_10.0_0.25_break.fa
+
+#BUSCO
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done #
+```
+Purge
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
+T1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/TellSeq/longranger/Tant_T508_barcoded.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_Tellseq_trimmed
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $T1
+#57245190
+
+#Purge with Tellseq (Illumina) Reads:
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/bwa/T_anthrisci_820m_48_1_10.0_0.25_break.fa_Tellseq_trimmed.bam
+Type=short
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')_TellSeqPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57252456
+
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa  
+#57291755
+```
+Scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57258652
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4499    4499    817     6088    101965  218217  410989  2788957 593.8e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57286927
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57291004
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1323    1323    6       1000    12.37e6 34.83e6 68.88e6 88.56e6 593.8e6 T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/scaff10x/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds_scaffolds_final.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57295617
+```
+YAHS -> Scaff10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57276685, 57276779, 57276823, 57279785, 57279829
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57285414
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1299    1299    6       1000    20.08e6 36.36e6 64.41e6 92.34e6 593.8e6 T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaffolds_final.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57291010
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1292    1292    6       1000    20.08e6 36.36e6 64.41e6 92.65e6 593.8e6 output_scaffolds.fasta
+```
+#### 4
+Break10x
+```bash
+#Already performed above
+```
+Purge
+```bash
+#Already performed above
+```
+Pilon
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+Alignment=$(dirname $Assembly)/../bwa/$(basename $Assembly | sed 's@_TellSeqPurged.fa@@g')_Tellseq_trimmed.bam
+source package 638df626-d658-40aa-80e5-14a275b7464b
+samtools sort -o $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') $Alignment
+rm $Alignment
+
+source switch-institute ei
+source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
+source package /tgac/software/testing/bin/picardtools-2.1.1
+chmod 777 $(dirname $Alignment)
+java17 -jar /tgac/software/testing/bin/core/../..//picardtools/2.1.1/x86_64/bin/picard.jar MarkDuplicates I=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g') O=$(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g') M=$(dirname $Assembly)/marked_dup_metrics.txt
+rm $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_sorted_Tellseq_trimmed.bam@g')
+cd $(dirname $Alignment)
+samtools index $(echo $Alignment | sed 's@_Tellseq_trimmed.bam@_markdups_Tellseq_trimmed.bam@g')
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/bwa/T_anthrisci_820m_48_1_10.0_0.25_break_sorted_markdups_Tellseq_trimmed.bam
+Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/bwa/T_anthrisci_820m_48_1_10.0_0.25_break_sorted_markdups_Tellseq_trimmed.bam.bai
+OutDir=$(dirname $Assembly)/pilon
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
+#57271544
+```
+Scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon.fasta
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57276691
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4471    4471    811     6088    103508  220397  414291  2788759 593.5e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57285462
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57290955
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1273    1273    5       1000    23.1e6  42.79e6 76.03e6 98.71e6 593.5e6 T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57291027
+
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final_mapped.PT.bam
+OutDir=$(dirname $Alignment)
+OutFile=$(basename $Alignment | sed 's@_mapped.PT.bam@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
+#57297211 - 57306167
+```
+YAHS -> Scaff10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57279828
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57285415
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1289    1289    3       1000    17.79e6 63.65e6 177.7e6 177.7e6 593.5e6 T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaffolds_final.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57285479
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1282    1282    3       1000    17.79e6 63.65e6 177.7e6 177.7e6 593.5e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaffolds_final_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57297158
+```
+#### 5
+Break10x
+```bash
+#Already performed above
+```
+Scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57252795
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#9337    9337    1149    6088    59062   202992  420426  2788957 829.7e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57291765
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57297196
+```
+YAHS -> Scaff10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57252799
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/T_anthrisci_820m_48_1_10.0_0.25_break_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57279792
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#8806    8806    762     1000    64026   270007  707093  3120170 829.7e6 T_anthrisci_820m_48_1_10.0_0.25_break_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_scaffolds_final.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57297221
+```
+#### 6
+Pilon
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/T_anthrisci_820m_48_1_10.0_0.25.bp.p_ctg.fa
+Alignment=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_Tellseq_trimmed.bam
+Index=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_Tellseq_trimmed.bam.bai
+OutDir=$(dirname $Assembly)/pilon
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
+#57227862
+```
+Break10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/T_anthrisci_820m_48_1_10.0_0.25.fasta
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/break10x
+OutPrefix=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_break10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57234076
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#9789    9789    1367    6088    59062   173762  353037  2788759 829.3e6 T_anthrisci_820m_48_1_10.0_0.25_break.fa
+```
+Purge
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
+T1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/TellSeq/longranger/Tant_T508_barcoded.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.fa@@g')_Tellseq_trimmed
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $T1
+#57245192
+
+#Purge with Tellseq (Illumina) Reads:
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/T_anthrisci_820m_48_1_10.0_0.25_break.fa
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/bwa/T_anthrisci_820m_48_1_10.0_0.25_break_Tellseq_trimmed.bam
+Type=short
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')_TellSeqPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57252544
+
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+#57291761
+```
+Scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57276686
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4502    4502    818     6088    101605  218822  407978  2788759 593.8e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57291804
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57297199
+```
+YAHS -> Scaff10x
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@_break_TellSeqPurged.fa@_pilon_break_TellSeqPurged@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57285416
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_pilon_break_TellSeqPurged_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_pilon_break_TellSeqPurged_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57285416
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1297    1297    4       1000    25.6e6  62.38e6 81.19e6 99.91e6 593.8e6 T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/pilon/break10x/purge_dups/scaff10x/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_scaff10xscaffolds_scaffolds_final.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57297228
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```bash
+source package /nbi/software/testing/bin/seqtk-1.2
+seqtk seq -a "/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final.fa" | awk '/^>/ {if (seq) print length(seq); seq=""; print $0; next} { seq = seq $0 } END { if (seq) print length(seq) }'
+```
+
 #### Canu
 ```bash
 for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiFi); do
