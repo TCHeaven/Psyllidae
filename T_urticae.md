@@ -969,6 +969,9 @@ cp temp.txt Reports/urticae_assembly_report3.txt
 ```
 The most complete assembly is T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa with 87.6% of Hemiptera BUSCOs across 26,089 contigs, whilst T_urticae_570m_32_3_10.0_0.25.bp.p_ctg.fa was most contiguous with 85.4% of BUSCOs across 18,726 contigs. Using hifiasm with default settings produced an assembly with 84.7% of BUSCOs across 20,013 contigs (Trurt_default.bp.p_ctg.fa).
 
+n       n:500   n:N50   min     N80     N50     N20     max     sum
+26089   26089   5889    3103    31608   62783   117571  753257  1.221e9 T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+
 Based on Merqury/KAT plot the true homozygous coverage is ~32
 ```bash
 #These assemblies were kept:
@@ -1799,19 +1802,12 @@ sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefi
 
 ######################################################################################################################
 
-
-minimap2 -t 4 -ax map-hifi /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi/urticae_hifi-3rdSMRTcell.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi/urticae_hifi-reads.fastq.gz --secondary=no \
-    | samtools sort -m 1G -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/minimap2/T_urticae_715m_12_2_3.0_0.5_aligned.bam -T tmp.ali
-
-cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/minimap2/
-samtools faidx T_urticae_715m_12_2_3.0_0.5_aligned.bam
-#57352827
-
 #Try Purge_Haplotigs
 #TellSeq
 interactive
 source /nbi/software/staging/RCSUPPORT-2652/stagingloader
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+AssemblyIndex=$(echo $Assembly).fai
 MappingFile=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_Tellseq_trimmed.bam
 purge_haplotigs hist -b $MappingFile -g $Assembly -t 1
 #Assess plot for low,mid,high cuttoffs
@@ -1823,17 +1819,45 @@ diploid_cuttoff=80
 junk_cuttoff=80
 hap_percent_cuttoff=70
 rep_percent_cuttoff=250
-OutDir=$(dirname $Assembly)/purge_haplotigs
+OutDir=$(dirname $Assembly)/purge_haplotigs/
 OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_TellSeqPurged
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
-sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57373614
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#12750   12750   2960    5898    41312   78619   138007  753257  733.3e6 T_urticae_715m_12_2_3.0_0.5_TellSeqPurged_curated.fasta
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_TellSeqPurged_curated.fasta); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done
+#57381722
+
+#T_urticae_715m_12_2_3.0_0.5_TellSeqPurged_curated_hemiptera_odb10_short_summary.txt
+#        C:84.9%[S:76.4%,D:8.5%],F:5.6%,M:9.5%,n:2510
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_TellSeqPurged_curated.fasta); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done
 #
 
 #HiFi
 interactive
 source /nbi/software/staging/RCSUPPORT-2652/stagingloader
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+AssemblyIndex=$(echo $Assembly).fai
 MappingFile=$(dirname $Assembly)/minimap2/$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_sorted_markdups_HiFi.bam
 purge_haplotigs hist -b $MappingFile -g $Assembly -t 1
 #Assess plot for low,mid,high cuttoffs
@@ -1849,8 +1873,91 @@ OutDir=$(dirname $Assembly)/purge_haplotigs
 OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_HiFiPurged
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
-sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
-#57351349
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57364802, 57368497
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#12753   12753   2960    5898    41286   78608   138007  753257  733.2e6 T_urticae_715m_12_2_3.0_0.5_HiFiPurged_curated.fasta
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_HiFiPurged_curated.fasta); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done
+#57372000
+
+#T_urticae_715m_12_2_3.0_0.5_HiFiPurged_curated_hemiptera_odb10_short_summary.txt
+#        C:85.0%[S:76.5%,D:8.5%],F:5.6%,M:9.4%,n:2510
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_HiFiPurged_curated.fasta); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done
+#57372815
+
+minimap2 -t 4 -ax map-hifi /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi/urticae_hifi-3rdSMRTcell.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiFi/urticae_hifi-reads.fastq.gz --secondary=no \
+    | samtools sort -m 1G -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/minimap2/T_urticae_715m_12_2_3.0_0.5_aligned.bam -T tmp.ali
+
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/minimap2/
+samtools faidx T_urticae_715m_12_2_3.0_0.5_aligned.bam
+#57362837,57372005
+
+interactive
+source /nbi/software/staging/RCSUPPORT-2652/stagingloader
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/T_urticae_715m_12_2_3.0_0.5.bp.p_ctg.fa
+AssemblyIndex=$(echo $Assembly).fai
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/minimap2/T_urticae_715m_12_2_3.0_0.5_aligned.bam
+purge_haplotigs hist -b $MappingFile -g $Assembly -t 1
+#Assess plot for low,mid,high cuttoffs
+MappingIndex=$(echo $MappingFile).bai
+low=3
+mid=33
+high=85
+diploid_cuttoff=80
+junk_cuttoff=80
+hap_percent_cuttoff=70
+rep_percent_cuttoff=250
+OutDir=$(dirname $Assembly)/purge_haplotigs
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_HiFiPurged_2
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57373613
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#12753   12753   2960    5898    41304   78611   138007  753257  733.2e6 T_urticae_715m_12_2_3.0_0.5_HiFiPurged_2_curated.fasta
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_HiFiPurged_2_curated.fasta); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done
+#57381723
+
+#T_urticae_715m_12_2_3.0_0.5_HiFiPurged_2_curated_hemiptera_odb10_short_summary.txt
+#        C:85.0%[S:76.5%,D:8.5%],F:5.6%,M:9.4%,n:2510
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_HiFiPurged_2_curated.fasta); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done
+#57382079
 ```
 ```bash
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/purge_dups/T_urticae_715m_12_2_3.0_0.5_*Purged.fa); do
@@ -2047,6 +2154,112 @@ done #57291748,9
 
 Purging with/without contaminants seems to make no difference to the final scores, neither does using Tellseq/Hifi reads.
 
+Purge_dups and purge_haplotigs:
+```bash
+interactive
+source /nbi/software/staging/RCSUPPORT-2652/stagingloader
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa
+AssemblyIndex=$(echo $Assembly).fai
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/minimap2/T_urticae_715m_12_2_3.0_0.5_aligned.bam
+purge_haplotigs hist -b $MappingFile -g $Assembly -t 1
+#Assess plot for low,mid,high cuttoffs
+MappingIndex=$(echo $MappingFile).bai
+low=3
+mid=33
+high=85
+diploid_cuttoff=80
+junk_cuttoff=80
+hap_percent_cuttoff=70
+rep_percent_cuttoff=250
+OutDir=$(dirname $Assembly)/purge_haplotigs
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_HiFiPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57449666
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#12489   12489   2820    5898    37959   74436   136409  753257  682.4e6 T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated.fasta
+
+low=6
+mid=33
+high=85
+diploid_cuttoff=80
+junk_cuttoff=80
+hap_percent_cuttoff=70
+rep_percent_cuttoff=250
+OutDir=$(dirname $Assembly)/purge_haplotigs
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_HiFiPurged2
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57449669
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#12430   12430   2814    5898    38083   74522   136409  753257  681.5e6 T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged2_curated.fasta
+
+low=6
+mid=33
+high=75
+diploid_cuttoff=50
+junk_cuttoff=80
+hap_percent_cuttoff=70
+rep_percent_cuttoff=250
+OutDir=$(dirname $Assembly)/purge_haplotigs
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_HiFiPurged3
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57449683
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#12491   12491   2814    5898    38123   74836   137726  753257  687.1e6 T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged3_curated.fasta
+
+low=6
+mid=33
+high=75
+diploid_cuttoff=50
+junk_cuttoff=80
+hap_percent_cuttoff=50
+rep_percent_cuttoff=250
+OutDir=$(dirname $Assembly)/purge_haplotigs
+OutPrefix=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@')_HiFiPurged4
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57449694
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#11200   11200   2565    5898    40481   78255   140412  753257  642.7e6 T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged4_curated.fasta
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged*curated.fasta); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3,4)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done
+#57456278, 57456310, 57456322, 57456351
+
+#T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated_hemiptera_odb10_short_summary.txt
+#        C:84.6%[S:80.9%,D:3.7%],F:5.8%,M:9.6%,n:2510
+
+#T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged2_curated_hemiptera_odb10_short_summary.txt
+#        C:84.5%[S:80.8%,D:3.7%],F:5.8%,M:9.7%,n:2510
+
+#T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged3_curated_hemiptera_odb10_short_summary.txt
+#        C:84.5%[S:80.8%,D:3.7%],F:5.8%,M:9.7%,n:2510
+
+#T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged4_curated_hemiptera_odb10_short_summary.txt
+#        C:82.9%[S:80.3%,D:2.6%],F:5.8%,M:11.3%,n:2510
+```
 #### Check HiC match assemblies
 ```bash
 for HiCreads in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_*/HiC/*.fastq.gz); do
@@ -2093,7 +2306,22 @@ Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urtic
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
 ProgDir=~/git_repos/Wrappers/NBI
 sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
-#
+#57548996
+#NOTE: 3ddna output is very large ~600GB therefore only final files kept
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#8659    8659    1       977     730168  612.6e6 612.6e6 612.6e6 780.5e6 genome_wrapped.FINAL.fasta
+#One enourmous chromosome...
+
+#######################################################################################################################################################################
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated.fasta
+OutDir=$(dirname $Assembly)/3ddna
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
+#57586907
 ```
 
 #### 0
@@ -2865,6 +3093,113 @@ mkdir $OutDir
 sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
 #57297226
 ```
+#### 7
+Filtered -> Purge_dups -> pilon -> break10x -> scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/bwa/T_urticae_715m_12_2_3.0_0.5_sorted_markdups_Tellseq_trimmed.bam
+Index=$(echo $Alignment).bai
+OutDir=$(dirname $Assembly)/pilon
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
+#57491054
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/pilon/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_pilon.fasta
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/10x
+OutDir=$(dirname $Assembly)/break10x
+OutPrefix=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_break10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57495010
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/pilon/break10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_pilon_break.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57495930
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_pilon_break_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57508776
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_pilon_break_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_pilon_break_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_pilon_break_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57508814
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#16954   16954   2302    3103    28327   66600   262598  1429565 816e6   T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_pilon_break_scaff10xscaffolds_scaffolds_final.fa
+```
+Filtered -> Purge_dups -> purge_haplotigs -> pilon -> break10x -> scaff10x -> YAHS
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/bwa/T_urticae_715m_12_2_3.0_0.5_sorted_markdups_Tellseq_trimmed.bam
+Index=$(echo $Alignment).bai
+OutDir=$(dirname $Assembly)/pilon
+OutPrefix=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
+#57491048
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/pilon/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated_pilon.fasta
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/10x
+OutDir=$(dirname $Assembly)/break10x
+OutPrefix=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_break10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57495009
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/pilon/break10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated_pilon_break.fa
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57495931
+
+sleep 36000s
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_pilon_break.fa_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57508795
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_pilon_break.fa_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated_pilon_break_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/pilon/break10x/scaff10x/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated_pilon_break_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57517791
+```
 #### TreeVal
 ```bash
 switch-institute EI
@@ -3140,7 +3475,125 @@ for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
     DataType=pacbio-hifi
     mkdir -p $OutDir
     sbatch $ProgDir/run_canu.sh $OutDir $OutFile $Genomesize $DataType $Run1 $Run2
-done #57231308
+done #57411057
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#35928   35928   8160    3075    23265   45912   86043   371196  1.242e9 T_urticae_715m.contigs.fasta
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/T_urticae_715m.contigs.fasta); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done 
+#57547088
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/T_urticae_715m.contigs.fasta); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+
+#T_urticae_715m.contigs.fasta_insecta_odb10_short_summary.txt
+#        C:82.6%[S:28.2%,D:54.4%],F:10.4%,M:7.0%,n:1367
+#T_urticae_715m.contigs.fasta_arthropoda_odb10_short_summary.txt
+#        C:83.1%[S:27.0%,D:56.1%],F:10.2%,M:6.7%,n:1013
+#T_urticae_715m.contigs.fasta_hemiptera_odb10_short_summary.txt
+#        C:85.0%[S:30.0%,D:55.0%],F:5.9%,M:9.1%,n:2510
+
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/T_urticae_715m.contigs.fasta
+T1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_urticae/TellSeq/longranger/Turt_T502_barcoded.fastq.gz
+T2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_urticae/TellSeq/longranger/Turt_T504_barcoded.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.fasta@@g')_Tellseq_trimmed_2
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $T1 $T2
+#57547105, 57560718
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/T_urticae_715m.contigs.fasta
+#Purge with Tellseq (Illumina) Reads:
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/bwa/T_urticae_715m.contigs_Tellseq_trimmed_2.bam
+Type=short
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.fasta@@')_TellSeqPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#57558531, 57560720, 57561619, 57583735, 57586615
+
+
+
+
+
+
+ProgDir=~/git_repos/Wrappers/NBI
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/T_urticae_715m.contigs.fasta
+OutDir=$(dirname $Assembly)/minimap2
+Outfile=$(basename $Assembly | sed 's@.fasta@@g')
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TUF20_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TUF20_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2
+#57586964
+
+#Purge with HiFi reads:
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/T_urticae_715m.contigs.fasta
+MappingFile=$(dirname $Assembly)/../minimap2/$(basename $Assembly | sed 's@.fasta@@g').bam
+Type=long
+OutDir=$(dirname $Assembly)/purge_dups
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')_HiFiPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
+#
 ```			
 #### longQC
 ```bash

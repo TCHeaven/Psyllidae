@@ -1474,6 +1474,7 @@ T_anthrisci_820m_48_1_10.0_0.25_HiFiPurged_hemiptera_odb10_short_summary.txt
         C:91.7%[S:85.3%,D:6.4%],F:3.8%,M:4.5%,n:2510
 T_anthrisci_820m_48_1_10.0_0.25_HiFiPurged_insecta_odb10_short_summary.txt
         C:91.1%[S:85.2%,D:5.9%],F:4.7%,M:4.2%,n:1367
+        
 T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_arthropoda_odb10_short_summary.txt
         C:91.0%[S:89.1%,D:1.9%],F:4.7%,M:4.3%,n:1013
 T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_hemiptera_odb10_short_summary.txt
@@ -1632,8 +1633,13 @@ OutFile=$(basename $Assembly | sed 's@.fa@@')
 Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
 ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
 sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
-#
+#57364468
+#NOTE: 3ddna output is very large ~600GB therefore only final files kept
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#1612    1612    6       977     27.51e6 37.42e6 46.85e6 58.62e6 554.4e6 T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged.FINAL.fasta
 ```
 
 #### 0
@@ -1797,6 +1803,17 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
 #57333204
+
+#Sanger
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/purge_dups/yahs/scaff10x/T_anthrisci_820m_48_1_10.0_0.25_TellSeqPurged_scaffolds_final_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')_222
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap2.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57561855
 ```
 Remove 13 and 156:
 ```python
@@ -1992,8 +2009,29 @@ mkdir $OutDir
 sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
 #57252456
 
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#4531    4531    824     6088    100360  215484  406833  2788957 593.8e6 T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa
+
 sbatch ~/git_repos/Pipelines/Trioza_merqury.sh /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa  
 #57291755
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done #57381425
+
+#T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_hemiptera_odb10_short_summary.txt
+#        C:91.7%[S:89.3%,D:2.4%],F:3.7%,M:4.6%,n:2510
 ```
 Scaff10x -> YAHS
 ```bash
@@ -2116,6 +2154,21 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_pilon.sh $Assembly $Alignment $Index $OutDir $OutPrefix
 #57271544
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon.fasta); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done #57381431
 ```
 Scaff10x -> YAHS
 ```bash
