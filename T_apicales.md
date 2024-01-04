@@ -1639,7 +1639,7 @@ Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apica
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
-#57364471
+#57364471, 57615784
 #NOTE: 3ddna output is very large ~600GB therefore only final files kept
 
 #n       n:500   n:N50   min     N80     N50     N20     max     sum
@@ -1752,6 +1752,32 @@ sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDi
 
 #n       n:500   n:N50   min     N80     N50     N20     max     sum
 #1423    1423    5       1000    13.36e6 48.6e6  62.8e6  75.53e6 603.9e6 T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_scaff10xscaffolds_scaffolds_final.fa
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_scaff10xscaffolds_scaffolds_final.fa
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap3.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57677372, 57677375
+
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_scaff10xscaffolds_scaffolds_final_mapped.bam
+OutDir=$(dirname $Alignment)
+OutFile=$(basename $Alignment | sed 's@_mapped.bam@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
+#57681461
+
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_scaff10xscaffolds_scaffolds_final_cat_mapped.bam
+OutDir=$(dirname $Alignment)
+OutFile=$(basename $Alignment | sed 's@_mapped.bam@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
+#57681465
 ```
 YAHS -> Scaff10x
 ```bash
@@ -2025,8 +2051,16 @@ OutFile=$(basename $Assembly | sed 's@.fa@@')
 Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
 ProgDir=~/git_repos/Wrappers/NBI
-sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
-#57297518
+sbatch $ProgDir/run_omniHiCmap3.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57682437
+
+Alignment=
+OutDir=$(dirname $Alignment)
+OutFile=$(basename $Alignment | sed 's@_mapped.bam@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
+#
 ```
 YAHS -> Scaff10x
 ```bash
@@ -2163,25 +2197,29 @@ cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa
 Enzyme=GATC
 OutDir=$(dirname $Assembly)
-OutFile=$(basename $Assembly | sed 's@.fa@@')_4
+OutFile=$(basename $Assembly | sed 's@.fa@@')_13
 Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
 ProgDir=~/git_repos/Wrappers/NBI
-sbatch $ProgDir/run_omniHiCmap2.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
-#57396583, 57398896, 57402359, 57437956
+sbatch $ProgDir/run_omniHiCmap3.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57396583, 57398896, 57402359, 57437956, 57624391, 57624411, 57624413, 57624510, 57624515, 57624531, 57624561, 57624571, 57636606, 57673246
+#2 57673274
+#3 57673329
+sbatch $ProgDir/temp4.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57673786,57674361,57676539
 
 samtools view -h -b -q 40 /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final_mapped.bam > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final_mapped_f.bam
 
 samtools markdup --write-index -r /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final_mapped.bam /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final_mapped_f2.bam
 
 
-for Alignment in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final_mapped_f2.bam); do
+for Alignment in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/tmp_57673329/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final_13_mapped.bam); do
 OutDir=$(dirname $Alignment)
-OutFile=$(basename $Alignment | sed 's@_mapped.bam@@')_v13
+OutFile=$(basename $Alignment | sed 's@_mapped.bam@@')_v21
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_pretextmap.sh $Alignment $OutDir $OutFile
-#57398903, 57406312, 57437893, 57450185, 57491068, 57491855, 57491907, 57493008, 57493026, 57493062, 57493069, 57493083,57561638,57561677
+#57398903, 57406312, 57437893, 57450185, 57491068, 57491855, 57491907, 57493008, 57493026, 57493062, 57493069, 57493083,57561638,57561677,57624436,57624464,57624465,57625365,57625366,57625367,57677242,57677376
 done
 #57493189-57493192, 57493228
 ```
@@ -2203,16 +2241,19 @@ Enzyme=DpnII
 singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/generate_site_positions.py $Enzyme OutFile ../references/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa
 awk 'BEGIN{OFS="\t"}{print $1, $NF}' OutFile_DpnII.txt > OutFile_DpnII.chrom.sizes
 cd ..
-source jdk-1.7.0_25; source bwa-0.7.17;source samtools-1.6
-singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/juicer.sif juicer.sh -t 16 -D /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/juicer -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/juicer -g OutFile -z references/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa -y restriction_sites/OutFile_DpnII.txt -s DpnII -t 1 -p restriction_sites/OutFile_DpnII.chrom.sizes 
+mkdir -p scripts/common
+cp ~/git_repos/Scripts/NBI/chimeric_blacklist.awk scripts/common/.
+source jdk-1.7.0_25; source bwa-0.7.17;source samtools-1.6;source gnu_parallel-20180322
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/juicer.sif juicer.sh -D /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/juicer -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/pilon/scaff10x/yahs/juicer -g OutFile -z references/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa -y restriction_sites/OutFile_DpnII.txt -s DpnII -t 64 -p restriction_sites/OutFile_DpnII.chrom.sizes 
 #57615361
 source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25
+~/git_repos/Scripts/NBI/run-assembly-visualizer.sh
 
 
 ~/3ddna-master/visualize/run-assembly-visualizer.sh draft.assembly aligned/merged_nodups.txt
 
 
-
+bwa mem -SP5M
 
 
 singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/juicer.sif juicer.sh -t 16 -d $WorkDir/juicer -g saundersiae -z genome_wrapped.fa -y ${OutFile}_Phase.txt -p genome_wrapped.fa.fai -D /opt/juicer-1.6.2/CPU

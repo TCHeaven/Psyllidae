@@ -2306,7 +2306,7 @@ Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urtic
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
 ProgDir=~/git_repos/Wrappers/NBI
 sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
-#57548996
+#57548996, 57615776
 #NOTE: 3ddna output is very large ~600GB therefore only final files kept
 
 #n       n:500   n:N50   min     N80     N50     N20     max     sum
@@ -2321,7 +2321,10 @@ Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urtic
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
 ProgDir=~/git_repos/Wrappers/NBI
 sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
-#57586907
+#57624373
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#5266    5266    17      977     2872641 12.03e6 23.58e6 37.04e6 659.1e6 T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated.FINAL.fasta
 ```
 
 #### 0
@@ -3569,9 +3572,70 @@ mkdir $OutDir
 sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
 #57558531, 57560720, 57561619, 57583735, 57586615
 
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#26731   26731   5518    3075    20714   44960   91281   371196  868.9e6 T_urticae_715m.contigs_TellSeqPurged.fa
 
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/T_urticae_715m.contigs_TellSeqPurged.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done
 
-
+#arthropoda
+#        C:80.7%[S:66.2%,D:14.5%],F:11.2%,M:8.1%,n:1013
+#insecta
+#        C:79.8%[S:64.5%,D:15.3%],F:11.4%,M:8.8%,n:1367
+#hemiptera
+#        C:83.2%[S:68.9%,D:14.3%],F:6.3%,M:10.5%,n:2510
 
 
 ProgDir=~/git_repos/Wrappers/NBI
@@ -3582,18 +3646,219 @@ Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2
 Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TUF20_hifi_3rdSMRTcell.fastq.gz
 mkdir $OutDir
 sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2
-#57586964
+#57624380
 
 #Purge with HiFi reads:
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/T_urticae_715m.contigs.fasta
-MappingFile=$(dirname $Assembly)/../minimap2/$(basename $Assembly | sed 's@.fasta@@g').bam
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/minimap2/T_urticae_715m.contigs.bam
 Type=long
 OutDir=$(dirname $Assembly)/purge_dups
 OutPrefix=$(basename $Assembly | sed 's@.fa@@')_HiFiPurged
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefix
-#
+#57625362
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#21439   21439   5006    5110    27685   52222   95389   371196  852.7e6 T_urticae_715m.contigssta_HiFiPurged.fa
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/T_urticae_715m.contigssta_HiFiPurged.fa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done
+
+#arthropoda
+#        C:81.2%[S:63.1%,D:18.1%],F:11.3%,M:7.5%,n:1013
+#insecta
+#        C:80.6%[S:61.8%,D:18.8%],F:11.3%,M:8.1%,n:1367
+#hemiptera
+#       C:83.8%[S:66.3%,D:17.5%],F:5.9%,M:10.3%,n:2510
+
+interactive
+source /nbi/software/staging/RCSUPPORT-2652/stagingloader
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/T_urticae_715m.contigssta_HiFiPurged.fa
+AssemblyIndex=$(echo $Assembly).fai
+MappingFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/minimap2/T_urticae_715m.contigs.bam
+purge_haplotigs hist -b $MappingFile -g $Assembly -t 1
+#Assess plot for low,mid,high cuttoffs
+MappingIndex=$(echo $MappingFile).bai
+low=3
+mid=33
+high=85
+diploid_cuttoff=80
+junk_cuttoff=80
+hap_percent_cuttoff=70
+rep_percent_cuttoff=250
+OutDir=$(dirname $Assembly)/purge_haplotigs
+OutPrefix=$(basename $Assembly | sed 's@.fa@@')_HiFiPurged
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_purge_haplotigs.sh $Assembly $AssemblyIndex $MappingFile $MappingIndex $low $mid $high $diploid_cuttoff $junk_cuttoff $hap_percent_cuttoff $rep_percent_cuttoff $OutDir $OutPrefix
+#57645419
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#15804   15804   3708    5110    30860   58528   102588  371196  686.7e6 T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated.fasta
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated.fasta); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Genome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    echo x
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/arthropoda_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/insecta_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Genome | cut -d '.' -f1,2,3)_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    echo $OutFile >> logs/buscolog.txt
+    sbatch $ProgDir/run_busco.sh $Genome $Database $OutDir $OutFile 2>&1 >> logs/buscolog.txt
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done
+
+#Arthropoda
+#        C:79.9%[S:74.5%,D:5.4%],F:11.9%,M:8.2%,n:1013
+#Insecta
+#        C:79.4%[S:73.4%,D:6.0%],F:12.0%,M:8.6%,n:1367
+#Hemiptera
+#        C:82.6%[S:76.9%,D:5.7%],F:6.4%,M:11.0%,n:2510
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated.fasta); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done 
+#57650867
+
+###############################################################################################################################
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated.fasta
+ReadDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/TellSeq/10x
+OutDir=$(dirname $Assembly)/scaff10x
+OutPrefix=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
+#57674353
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#14650   14650   2554    5110    30860   58528   194157  961883  686.7e6 output_scaffolds.fasta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/scaff10x/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated_scaff10xscaffolds.fasta
+Enzyme=GATC
+OutDir=$(dirname $Assembly)
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_omniHiCmap.sh $Assembly $Enzyme $OutDir $OutFile $Read1 $Read2
+#57681409
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/scaff10x/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated_scaff10xscaffolds.fasta
+Alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/scaff10x/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated_scaff10xscaffolds_mapped.PT.bam
+Alignment_Index=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/scaff10x/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated_scaff10xscaffolds_mapped.PT.bam.bai
+Enzyme=GATC
+OutDir=$(dirname $Assembly)/yahs
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_yahs.sh $Assembly $Alignment $Alignment_Index $Enzyme $OutDir $OutFile
+#57689851
+
+#assembly N50 (111879) too small
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#14650   14650   2554    5110    30860   58528   194157  961883  686.7e6 output_scaffolds.fasta
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/canu/715m/purge_dups/purge_haplotigs/scaff10x/yahs/T_urticae_715m.contigssta_HiFiPurged_HiFiPurged_curated_scaff10xscaffolds_scaffolds_final.fa); do
+sbatch ~/git_repos/Pipelines/Trioza_merqury.sh $Assembly  
+done 
+#57758479
 ```			
 #### longQC
 ```bash

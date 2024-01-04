@@ -1635,7 +1635,7 @@ Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthr
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
-#57364468
+#57364468, 57615781, 57625368
 #NOTE: 3ddna output is very large ~600GB therefore only final files kept
 
 #n       n:500   n:N50   min     N80     N50     N20     max     sum
