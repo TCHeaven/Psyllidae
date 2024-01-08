@@ -2259,6 +2259,12 @@ done
 
 #T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged4_curated_hemiptera_odb10_short_summary.txt
 #        C:82.9%[S:80.3%,D:2.6%],F:5.8%,M:11.3%,n:2510
+
+
+for Assembly in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged.fa_HiFiPurged_curated.fasta); do
+sbatch ~/git_repos/Pipelines/NBI/Trioza_merqury.sh $Assembly  
+done #57807761
+#busco 57807762,3
 ```
 #### Check HiC match assemblies
 ```bash
