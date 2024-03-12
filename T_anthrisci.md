@@ -17,6 +17,12 @@ ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/T
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_I1_T508.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_anthrisci/TellSeq/anthrisci_T508_I1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_R1_T508.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_anthrisci/TellSeq/anthrisci_T508_R1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_R2_T508.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_anthrisci/TellSeq/anthrisci_T508_R2.fastq.gz
+
+#RNASeq
+ln -s /jic/research-groups/Saskia-Hogenhout/reads/RNASeq/Trioza_psyllids_2022/RNAseqMay2022/X204SC22051079-Z01-F001/raw_data/N11/N11_1.fq.gz raw_data/T_anthrisci/RNASeq/T_anthrisci_N11_1.fq.gz
+ln -s /jic/research-groups/Saskia-Hogenhout/reads/RNASeq/Trioza_psyllids_2022/RNAseqMay2022/X204SC22051079-Z01-F001/raw_data/N11/N11_2.fq.gz raw_data/T_anthrisci/RNASeq/T_anthrisci_N11_2.fq.gz
+ln -s /jic/research-groups/Saskia-Hogenhout/reads/RNASeq/Trioza_psyllids_2022/RNAseqMay2022/X204SC22051079-Z01-F001/raw_data/N7/N7_1.fq.gz raw_data/T_anthrisci/RNASeq/T_anthrisci_N7_1.fq.gz
+ln -s /jic/research-groups/Saskia-Hogenhout/reads/RNASeq/Trioza_psyllids_2022/RNAseqMay2022/X204SC22051079-Z01-F001/raw_data/N7/N7_2.fq.gz raw_data/T_anthrisci/RNASeq/T_anthrisci_N7_2.fq.gz
 ```
 Remove HiFi reads containing adapters:
 ```bash
@@ -2119,6 +2125,12 @@ sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
 #n       n:500   n:N50   min     N80     N50     N20     max     sum
 #1292    1292    6       1000    20.08e6 36.36e6 64.41e6 92.65e6 593.8e6 output_scaffolds.fasta
 ```
+#### 3.1
+Final curated version from T.Mathers
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa.gz
+```
 #### 4
 Break10x
 ```bash
@@ -2471,7 +2483,720 @@ mkdir $OutDir
 sbatch $ProgDir/run_scaff10x.sh $Assembly $ReadDir $OutDir $OutPrefix
 #57297228
 ```
+### Filtering
+#### MitoHiFi
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa
+ReferenceFasta=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/NCBI/Trant_mito_NC_038141.1.fasta
+ReferenceGenebank=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/NCBI/Trant_mito_NC_038141.1.gb
+PercentOverlap=50
+Code=5
+Kingdom=animal
+Good_Reference=Y
+OutDir=$(dirname $Assembly)/MitoHifi
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_mitohifi_contigs.sh $Assembly $ReferenceFasta $ReferenceGenebank $PercentOverlap $Code $Kingdom $Good_Reference $OutDir 
+#58068711
 
+OutFile=T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated
+```
+scaffold_397 identified as the mitochondrial genome.
+```bash
+echo scaffold_397 > id.txt
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_rm.py  --id_file id.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito.fa
+
+#Mitochondrial genome:
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/final_mitogenome.fasta
+```
+
+#### Filter contaminants from curated assembly
+
+Investigate the large contaminant contig/scaffold 17.
+```bash
+#Extract scaffold 17:
+echo scaffold_17_3 > temp_search.txt
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 /hpc-home/did23faz/git_repos/Scripts/NBI/seq_get.py --id_file temp_search.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa --output ant_17.fa
+
+#Align scaffold 17 to the liberibacter genome from the apicales assembly, and the reference published liberibacter genome:
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_18.fasta
+Query=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ant_17.fa
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
+OutFile=scaff17
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_nucmer.sh $Reference $Query $OutDir $OutFile
+#58078409
+source package 70b0e328-5a66-4c7c-971b-b2face8a50d4
+source package 09b2c824-1ef0-4879-b4d2-0a04ee1bbd6d
+mummerplot -l -c /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17.delta
+mummerplot -color /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17.delta
+
+Reference=/jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCF_000183665.1/GCF_000183665.1_ASM18366v1_genomic.fna
+Query=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ant_17.fa
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
+OutFile=scaff17-2
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_nucmer.sh $Reference $Query $OutDir $OutFile
+#58089601
+source package 70b0e328-5a66-4c7c-971b-b2face8a50d4
+source package 09b2c824-1ef0-4879-b4d2-0a04ee1bbd6d
+mummerplot -l -c /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17-2.delta
+mummerplot -color /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17-2.delta
+#There was no alignment to liberibacter
+
+
+#Blast scaffold 17 to identify its origin:
+InFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ant_17.fa
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_premade_02102023/nt
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/tmp_blastn
+Max=9999999
+OutFile=ant_17
+sbatch ~/git_repos/Wrappers/NBI/run_blastn.sh $InFile $Database $OutDir $OutFile $Max
+#58092051
+awk '{print $5}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/tmp_blastn/ant_17.vs.nt.mts1.hsp1.1e25.megablast.out | sort | uniq -c | sort -nr | head -n 1
+#blast hits suggest scaffodl 17 is a Staphylococcus xylosus genome
+
+#Align scaffold 17 to the reference Staphylococcus xylosus genome:
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ant_17.fa
+Query=/jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Staphylococcus/xylosus/GCF_000709415.1/GCA_000709415.1_ASM70941v1_genomic.fna
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
+OutFile=scaff17-3
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_nucmer.sh $Reference $Query $OutDir $OutFile
+#58098311
+source package 70b0e328-5a66-4c7c-971b-b2face8a50d4
+source package 09b2c824-1ef0-4879-b4d2-0a04ee1bbd6d
+mummerplot -l -c /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17-3.delta
+mummerplot -color /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17-3.delta
+#Alignment is very strong
+```
+Scaffold 17 looks like it is Staphylococcus xylosus.
+
+#### Kraken and Blobtools
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito.fa
+Species=$(echo $Assembly | cut -d '/' -f10)
+Genus=Trioza
+TaxID=2023874
+alias=$(basename $Assembly | cut -d '_' -f1,2 | sed 's@_@@g' | cut -c1-4)
+T1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/TellSeq/longranger/Tant_T508_barcoded.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+
+#Kraken 
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')_kraken2nt
+OutDir=$(dirname $Assembly)/kraken2.1.3
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/kraken/nt_14092023
+mkdir $OutDir
+sbatch $ProgDir/run_kraken2.sh $Assembly $Database $OutDir $OutPrefix
+#58072788
+
+#Tiara
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')
+OutDir=$(dirname $Assembly)/tiara
+mkdir $OutDir
+sbatch $ProgDir/run_tiara.sh $Assembly $OutDir $OutPrefix
+#58072789
+
+#Alignment
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.fa@@g')_Tellseq_trimmed
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $T1 
+#58072790,58089920
+
+#Blast
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')
+OutDir=$(dirname $Assembly)/blast2.12.0
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_premade_02102023/nt
+mkdir $OutDir
+sbatch $ProgDir/run_blastn.sh $Assembly $Database $OutDir $OutPrefix 
+#58072804
+
+#BUSCO - keeping output files
+OutDir=$(dirname $Assembly)/BUSCO
+Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+OutFile=$(basename $Assembly | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+mkdir $OutDir 
+sbatch $ProgDir/run_busco_keep.sh $Assembly $Database $OutDir $OutFile 
+#58098588
+
+#Blobtoolkit
+Record_type=contig
+MappingFile=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.fa@@g')_Tellseq_trimmed.bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/$(basename $Assembly | sed 's@.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+BUSCOFile=$(dirname $Assembly)/BUSCO/hemiptera_odb10/run_hemiptera_odb10/full_table.tsv
+Tiara=$(ls $(dirname $Assembly)/tiara/${Species}*.tiara)
+OutDir=$(dirname $Assembly)/blobtoolkit4.2.1
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')
+Alias=$(echo $alias)_Tellseq_trimmed
+mkdir $OutDir
+sbatch $ProgDir/run_btk4.2.1.sh $Assembly $Record_type $MappingFile $BlastFile $BUSCOFile $Tiara $OutDir $OutPrefix $Genus $Species $TaxID $Alias
+#58102771
+
+cp -r ${OutDir}/Tant_Tellseq_trimmed_blobdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs/.
+#The contents of /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs were subsequently copied to local machine WSL-Ubuntu: \\wsl.localhost\Ubuntu\home\did23faz
+```
+```bash
+ubuntu
+conda activate btk
+#From \\wsl.localhost\Ubuntu\home\did23faz
+apptainer exec blobtoolkit.sif blobtools host BlobDirs
+```
+Kraken and blobtools were used to screen the assembly for contaminants resulting in the removal of 122 scaffolds, all scaffolds without kraken classification to an arthropoda taxa outside of the range 0.3 - 0.4 GC, 40 - 70x coverage were removed, within this range scaffolds without classification to arthropoda taxa were kept if there classification was more general (eg. eukaryota), unclassified, or to a taxa it is implausible the sample to be contaminatied with (eg. tuna). Additionally, 24 scaffolds scaffolds were removed that were classified to arthropoda taxa by kraken, but which were identified by either tiara or blast as potential contaminants, these all fell outside of the 0.3 - 0.4 GC, 40 - 70x coverage range.
+
+Blast and kraken both identify contamination from Rickettsia bacteria at high coverage, these are likely symbionts, as well as Ignavibacterium at low coverage. They also confirm Staphylococcus xylosus contamination.
+
+Suspected contaminants were removed to a seperate fasta file:
+```bash
+nano /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/suspected_contaminant_names.txt
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_get.py --id_file /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/suspected_contaminant_names.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito.fa --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_suspected_contaminants.fa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_rm.py --id_file /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/suspected_contaminant_names.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito.fa --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered.fa
+```
+
+##### Carsonella
+
+```bash
+for file in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_suspected_contaminants.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_suspected_contaminants.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_suspected_contaminants.fa); do
+name=$(basename $file | rev | cut -d '/' -f1 | rev | cut -d '_' -f1,2)
+echo $name
+cp $file ./x.fa
+sed -i "s/>/>${name}_/g" x.fa
+cat x.fa >> db3.fa
+done
+
+makeblastdb -in db3.fa -input_type fasta -dbtype nucl -title psyllid3  -parse_seqids -out psyllid3
+
+blastn -query ../Symbionts/Candidatus/Carsonella/ruddii/GCA_000287275.1/GCA_000287275.1_ASM28727v1_genomic.fna -db psyllid3 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/Carsonella_ruddii_results -evalue 1e-5 -outfmt 6 -num_threads 1
+
+#T_anthrisci_scaffold_54 tens of thousands of bp alignment
+#T_anthrisci_scaffold_858 6701bp alignment
+#T_anthrisci_scaffold_75 <1220bp alignment
+#T_anthrisci_scaffold_285 <795bp alignment
+#T_anthrisci_scaffold_286 <891bp alignment
+#T_anthrisci_scaffold_17_3 <590bp alignment
+#T_anthrisci_scaffold_17_2 <590bp alignment
+#T_anthrisci_scaffold_254 <574bp alignment
+#T_anthrisci_scaffold_250 64bp alignment
+
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_54' > temp_scaffold_54.fasta
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_858' > temp_scaffold_858.fasta
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_75' > temp_scaffold_75.fasta
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_285' > temp_scaffold_285.fasta
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_17_3' > temp_scaffold_17_3.fasta
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_254' > temp_scaffold_254.fasta
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_17_2' > temp_scaffold_17_2.fasta
+awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa | grep -A 1 -w '>scaffold_250' > temp_scaffold_250.fasta
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_54.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_54
+mummerplot -color scaffold_54.delta
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_54.fasta -p scaffold_54-2
+mummerplot -color scaffold_54-2.delta
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_858.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_858
+mummerplot -color scaffold_858.delta
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_858.fasta -p scaffold_858-2
+mummerplot -color scaffold_858-2.delta
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_75.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_75
+mummerplot -color scaffold_75.delta
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_75.fasta -p scaffold_75-2
+mummerplot -color scaffold_75-2.delta
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_285.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_285
+mummerplot -color scaffold_285.delta
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_285.fasta -p scaffold_285-2
+mummerplot -color scaffold_285-2.delta
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_17_2.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_17_2
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_17_3.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_17_3
+mummerplot -color scaffold_17_3.delta
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_17_3.fasta -p scaffold_17_3-2
+mummerplot -color scaffold_17_3-2.delta
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_250.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_250
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_254.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p scaffold_254
+mummerplot -color scaffold_254.delta
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_254.fasta -p scaffold_254-2
+mummerplot -color scaffold_254-2.delta
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_858.fasta /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_54.fasta -p scaffold_54_858
+mummerplot -color scaffold_54_858.delta
+
+cat temp_scaffold_54.fasta temp_scaffold_858.fasta temp_scaffold_75.fasta temp_scaffold_285.fasta temp_scaffold_17_3.fasta temp_scaffold_17_2.fasta temp_scaffold_250.fasta temp_scaffold_254.fasta > temp_all.fasta
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_all.fasta -p temp_all_ant
+mummerplot -color temp_all_ant.delta
+
+nucmer --maxmatch --nosimplify ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna ../Symbionts/Candidatus/Carsonella/ruddii/GCA_000010365.1/GCA_000010365.1_ASM1036v1_genomic.fna -p temp
+mummerplot -color temp.delta
+```
+Alignments show that scaffold 54 consists of ~140,000bp of carsonella sequence, some sections of the genome are covered twice. Scaffold 858 is also ~50% carsonella sequence, all of which is within scaffold 54, the other scaffolds have minimal alignment. 
+```bash
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_get.py --id_file /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/carsonella_names.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/carsonella/carsonella_contigs.fa
+
+ProgDir=~/git_repos/Wrappers/NBI
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/carsonella/carsonella_contigs.fa
+OutDir=$(dirname $Assembly)/minimap2
+Outfile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAn22_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAn22_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2
+#58772573
+
+source package c92263ec-95e5-43eb-a527-8f1496d56f1a
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/carsonella/minimap2
+samtools view -h carsonella_contigs.bam -o carsonella_contigs.sam
+samtools fastq -@32 carsonella_contigs.sam > reads.fastq
+#58776517
+
+ProgDir=~/git_repos/Wrappers/NBI
+Reads=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/carsonella/minimap2/reads.fastq
+OutDir=$(dirname $Reads)/hifiasm_19.5.2
+OutFile=carsonella_ant
+mkdir -p $OutDir
+sbatch $ProgDir/run_hifiasm_default.sh $OutDir $OutFile $Reads
+#58778305
+
+#n       n:500   n:N50   min     N80     N50     N20     max     sum
+#9452    9452    1152    6429    60185   198829  430445  2788957 831.3e6 carsonella_api.bp.p_ctg.fa
+
+source package d6092385-3a81-49d9-b044-8ffb85d0c446
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/carsonella/minimap2/hifiasm_19.5.2/carsonella_api.bp.p_ctg.fa -input_type fasta -dbtype nucl -title carant  -parse_seqids -out carant
+blastn -query ../Symbionts/Candidatus/Carsonella/ruddii/GCA_000287275.1/GCA_000287275.1_ASM28727v1_genomic.fna -db carant -out carant -evalue 1e-5 -outfmt 6 -num_threads 1
+awk '{print $2}' carant | sort | uniq | wc -l #222
+```
+
+### Final assembly assessment
+
+Fresh blobplots were prepared for the filtered assembly:
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered.fa
+Species=$(echo $Assembly | cut -d '/' -f10)
+Genus=Trioza
+TaxID=872318
+alias=$(basename $Assembly | cut -d '_' -f1,2 | sed 's@_@@g' | cut -c1-4)
+T1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/TellSeq/longranger/Tant_T508_barcoded.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+
+#Tiara
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')
+OutDir=$(dirname $Assembly)/tiara
+mkdir $OutDir
+sbatch $ProgDir/run_tiara.sh $Assembly $OutDir $OutPrefix
+#58113113
+
+#Alignment
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.fa@@g')_Tellseq_trimmed
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $T1 
+#58113116
+
+#Blast
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')
+OutDir=$(dirname $Assembly)/blast2.12.0
+Max_target=10
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nt_premade_02102023/nt
+mkdir $OutDir
+sbatch $ProgDir/run_blastn.sh $Assembly $Database $OutDir $OutPrefix $Max_target
+#58746494
+
+#BUSCO - keeping output files
+OutDir=$(dirname $Assembly)/BUSCO
+Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+OutFile=$(basename $Assembly | cut -d '.' -f1)_$(echo $Database | cut -d '/' -f7)
+mkdir $OutDir 
+sbatch $ProgDir/run_busco_keep.sh $Assembly $Database $OutDir $OutFile 
+#58113126
+
+#Blobtoolkit
+Record_type=contig
+MappingFile=$(dirname $Assembly)/bwa/$(basename $Assembly | sed 's@.fa@@g')_Tellseq_trimmed.bam
+BlastFile=$(dirname $Assembly)/blast2.12.0/$(basename $Assembly | sed 's@.fa@@g').vs.nt.mts1.hsp1.1e25.megablast.out
+BUSCOFile=$(dirname $Assembly)/BUSCO/hemiptera_odb10/run_hemiptera_odb10/full_table.tsv
+Tiara=$(ls $(dirname $Assembly)/tiara/${Species}*.tiara)
+OutDir=$(dirname $Assembly)/blobtoolkit4.2.1
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')
+Alias=$(echo $alias)_Tellseq_trimmed_filtered
+mkdir $OutDir
+sbatch $ProgDir/run_btk4.2.1.sh $Assembly $Record_type $MappingFile $BlastFile $BUSCOFile $Tiara $OutDir $OutPrefix $Genus $Species $TaxID $Alias
+#58760372
+
+cp -r ${OutDir}/Tant_Tellseq_trimmed_blobdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs/.
+#The contents of /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blobtools/BlobDirs were subsequently copied to local machine WSL-Ubuntu: \\wsl.localhost\Ubuntu\home\did23faz
+```
+#### Inspector
+
+The filtered assembly was assessed and polished with inspector:
+```bash
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered.fa
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+OutDir=$(dirname $Genome)
+Datatype=hifi
+Correct_Datatype=pacbio-hifi
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAn22_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAn22_hifi_3rdSMRTcell.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_inspector.sh $OutFile $OutDir $Genome $Datatype $Correct_Datatype $Read1 $Read2
+#58153902
+```
+Inspector reported the following summary statistics for the assembly:
+
+Statics of contigs:
+Number of contigs       361
+Number of contigs > 1000 bp     361
+Number of contigs >1000000 bp   14
+Total length    587809615
+Total length of contigs > 1000 bp       587809615
+Total length of contigs >1000000bp      571400068
+Longest contig  67459246
+Second longest contig length    66647579
+N50     48836234
+N50 of contigs >1Mbp    48836234
+
+
+Read to Contig alignment:
+Mapping rate /% 79.6
+Split-read rate /%      20.19
+Depth   31.8739
+Mapping rate in large contigs /%        78.07
+Split-read rate in large contigs /%     20.22
+Depth in large conigs   32.1703
+
+
+Structural error        462
+Expansion       301
+Collapse        64
+Haplotype switch        79
+Inversion       18
+
+
+Small-scale assembly error /per Mbp     98.53360428614288
+Total small-scale assembly error        57919
+Base substitution       45288
+Small-scale expansion   6959
+Small-scale collapse    5672
+
+QV      29.932235272211926
+
+#### Juicebox
+The final assembly was visualised using juicebox:
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+OutDir=$(dirname $Assembly)/juicebox
+OutFile=$(basename $Assembly | sed 's@.fa@@g')
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_juicebox-prep.sh $Assembly $Read1 $Read2 $OutDir $OutFile
+#58947779
+
+#From omni-c guide
+source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
+java17 -Xmx48000m -Djava.awt.headless=true -jar ~/git_repos/Scripts/NBI/juicer_tools_1.22.01.jar pre --threads 16 /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicebox/*.pairs /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicebox/*.hic /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicebox/*.genome
+sbatch ~/git_repos/Wrappers/NBI/temp3.sh
+#57554716, 57816287, 57818847
+ ~/git_repos/Scripts/NBI/generate-assembly-file-from-fasta.awk /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/yahs/scaff10x/T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_scaffolds_final_scaff10xscaffolds.fasta
+
+source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25
+~/3ddna-master/visualize/run-assembly-visualizer.sh draft.assembly aligned/merged_nodups.txt
+
+#From T.Mathers
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer
+mkdir restriction_sites;mkdir references;mkdir fastq
+cd fastq
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz .
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz .
+cd ../references
+ln -s /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa .
+source bwa-0.7.17
+bwa index T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+cd ../restriction_sites
+Enzyme=DpnII
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/generate_site_positions.py $Enzyme OutFile ../references/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+awk 'BEGIN{OFS="\t"}{print $1, $NF}' OutFile_DpnII.txt > OutFile_DpnII.chrom.sizes
+cd ..
+mkdir -p scripts/common
+cp ~/git_repos/Scripts/NBI/chimeric_blacklist.awk scripts/common/.
+source jdk-1.7.0_25; source bwa-0.7.17;source samtools-1.6;source gnu_parallel-20180322
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/juicer.sif juicer.sh -D /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer -g OutFile -z references/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa -y restriction_sites/OutFile_DpnII.txt -s DpnII -t 32 -p restriction_sites/OutFile_DpnII.chrom.sizes 
+#58959622 pwd=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer/references
+
+
+
+source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25
+~/git_repos/Scripts/NBI/run-assembly-visualizer.sh
+
+
+~/3ddna-master/visualize/run-assembly-visualizer.sh draft.assembly aligned/merged_nodups.txt
+
+
+bwa mem -SP5M
+
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/juicer.sif juicer.sh -t 16 -d $WorkDir/juicer -g saundersiae -z genome_wrapped.fa -y ${OutFile}_Phase.txt -p genome_wrapped.fa.fai -D /opt/juicer-1.6.2/CPU
+```
+## Annotation
+### Repeatmasking
+
+#### Repeatmodeler
+```bash
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+OutDir=$(dirname $Genome)/repeatmodeler
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_repeatmodeler.sh $Genome $OutFile $OutDir
+#58170701
+```
+#### Repeatmasker
+```bash
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+Species=hemiptera
+Repeat_library=$(ls $(dirname $Genome)/repeatmodeler/*/consensi.fa.classified)
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+OutDir=$(dirname $Genome)/repeatmasker
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_repeatmasker4.1.5.sh $Genome $OutFile $OutDir $Species $Repeat_library
+#58186045
+```
+#### EarlGreyTE
+```bash
+source package 14fbfadb-9fe7-419a-9f20-cd5f458c0fff
+
+source package /tgac/software/testing/bin/transposonPSI-08222010
+
+bedtools maskfasta -fi [genome.fasta] -bed [teannotations.bed] -fo [genome.softmasked.fa] -soft
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/earlgrey4.0.6.sif earlGrey 
+
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+OutDir=$(dirname $Genome)
+RMsearch=arthropoda
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_earlgrey.sh $Genome $OutFile $OutDir $RMsearch
+#58797251, 58852735 ran out of memory with 184GB, 58929433 time out at 2 days, 58940974
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/earlgrey4.0.6.sif earlGrey -g $Genome -s $OutFile -o $OutDir -t 1 -d yes -r arthropoda
+```
+
+### RNASeq 
+#### Trimmomatic
+```bash
+for Rawdata in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/RNASeq/T_anthrisci_*.fq.gz); do
+OutDir=$(dirname $Rawdata)/fastqc
+OutFile=$(basename $Rawdata | sed 's@.fq.gz@@g')
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_fastqc.sh $Rawdata $OutDir $OutFile
+done
+
+mv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/RNASeq/T_anthrisci_N7_1.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/RNASeq/T_anthrisci_N7_3.fq.gz
+mv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/RNASeq/T_anthrisci_N7_2.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/RNASeq/T_anthrisci_N7_4.fq.gz
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/RNASeq/); do
+    sample=$(echo $ReadDir | rev | cut -d '/' -f3 | rev)
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    Fread2=$(ls ${ReadDir}*_3.fq.gz)
+    Rread2=$(ls ${ReadDir}*_4.fq.gz)
+    OutDir=$(echo $ReadDir | sed 's@raw_data@dna_qc@g')trim_galore
+    OutFile=${sample}_trimmed
+    Quality=20
+    Length=50
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir -p $OutDir
+    sbatch $ProgDir/run_trim_galore.sh $OutDir $OutFile $Quality $Length $Fread $Rread $Fread2 $Rread2 $Fread3 $Rread3 $Fread4 $Rread4 $Fread5 $Rread5
+done 
+#58156405
+
+for QCdata in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/RNASeq/trim_galore/T_anthrisci_*.fq.gz); do
+OutDir=$(dirname $QCdata)/fastqc
+OutFile=$(basename $QCdata | sed 's@.fq.gz@@g')
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_fastqc.sh $QCdata $OutDir $OutFile
+done
+#58171201,2
+```
+#### HiSat2
+Hisat2 is the aligner used internally by braker, it is slower than star but requires less memory.
+```bash
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/RNASeq/trim_galore/); do
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    InGenome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+    OutDir=$(dirname $InGenome)/hisat2
+    OutFile=$(basename $InGenome | sed 's@.fa@@g')
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir $OutDir
+    sbatch $ProgDir/run_HiSat2.sh $InGenome $Fread $Rread $OutDir $OutFile
+done
+#58233931
+```
+100164402 reads; of these:
+  100164402 (100.00%) were paired; of these:
+    37485981 (37.42%) aligned concordantly 0 times
+    59758386 (59.66%) aligned concordantly exactly 1 time
+    2920035 (2.92%) aligned concordantly >1 times
+    ----
+    37485981 pairs aligned concordantly 0 times; of these:
+      197173 (0.53%) aligned discordantly 1 time
+    ----
+    37288808 pairs aligned 0 times concordantly or discordantly; of these:
+      74577616 mates make up the pairs; of these:
+        57021940 (76.46%) aligned 0 times
+        16951489 (22.73%) aligned exactly 1 time
+        604187 (0.81%) aligned >1 times
+71.54% overall alignment rate
+
+#### STAR
+```bash
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/RNASeq/trim_galore/); do
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    OutDir=$(echo $ReadDir | sed 's@raw_data@alignment@g')star
+    InGenome=
+    ProgDir=~/git_repos/Wrappers/NBI
+    sbatch $ProgDir/run_star_align.sh $InGenome $Freads $Rreads $OutDir
+done
+```
+#### Braker
+```bash
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda.fa > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
+for file in $(ls ../Genomes/*/*/*/protein.faa | grep -v 'Frankiniella\|Thrips\|Megalurothrips\|Tribolium\|Drosophila\|Bombyx\|Apis\|Anopheles'); do
+awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' $file | sed 's@*@@g'| sed 's@|@@g'| sed 's@ @@g'>> /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
+done
+
+mv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa.masked /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+
+
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/hisat2/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.bam
+Protein_database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
+Species=D_anthrisci
+OutDir=$(dirname $Masked_Genome)/braker3
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#58236703
+
+samtools sort -n /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/hisat2/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.bam
+#58379020
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/hisat2/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.bam
+Protein_database=NA
+Species=D_anthrisci_rna3
+OutDir=$(dirname $Masked_Genome)/braker3-rna
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#58527346
+
+grep '>' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3-soft/braker.aa | wc -l
+#13980
+grep '>' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3/braker.aa | wc -l
+#13765
+
+```
+#### Helixer
+```bash
+singularity exec ~/helixer-docker_helixer_v0.3.2_cuda_11.8.0-cudnn8.sif Helixer.py --model-filepath ../databases/helixer/invertebrate_v0.3_a_0500/invertebrate_v0.3_a_0500.h5 --subsequence-length 213840 --overlap-offset 106920 --overlap-core-length 160380 --fasta-path /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa  \
+  --species Dyspera_anthrisci --gff-output-path Dyspera_anthrisci_helixer_invertebrate_05.gff3
+
+fasta=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+model_filepath=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/helixer/invertebrate_v0.3_m_0100/invertebrate_v0.3_m_0100.h5
+lineage=invertebrate
+species=T_anthrisci
+outfile=T_anthrisci
+outdir=$(dirname $fasta)/helixer
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $outdir
+sbatch $ProgDir/run_helixer.sh $fasta $model_filepath $lineage $species $outfile $outdir
+#58575598
+
+grep 'gene' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.gff | wc -l #17,077
+```
+#### Swissprot
+```bash
+Proteome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3/braker.aa  
+OutDir=$(dirname $Proteome)/swissprot
+SwissDbDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/Uniprot/swissprot_2024_March_10
+SwissDbName=uniprot_sprot
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName 
+#58956715
+```
+#### Interproscan
+```bash
+InFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3/braker.aa
+OutDir=$(dirname $InFile)/interproscan
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_interproscan.sh $InFile $OutDir
+#58949316
+```
+#### Pretextgraph
+```bash
+#NOTE: mapped scaffolds were produced by T.mathers from /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged.fa, therefore we do not have the scaffolds themselves
+ProgDir=~/git_repos/Wrappers/NBI
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.fa@@g')_Tellseq_trimmed
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_anthrisci/TellSeq/longranger/Tant_T508_barcoded.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $Read1
+#57822383, 57831161, 
+
+ProgDir=~/git_repos/Wrappers/NBI
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/pilon/scaff10x/yahs/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_pilon_scaff10xscaffolds_scaffolds_final.fa
+OutDir=$(dirname $Assembly)/minimap2
+Outfile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAn22_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAn22_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2
+#57822435, 57831162, 
+
+source package 6daf0c37-1c5e-4cd6-9884-2d0b4d5f9d8f
+bamCoverage -b reads.bam -o coverage.bw --outFileFormat bedgraph
+
+source /jic/software/staging/RCSUPPORT-2245/stagingloader
+PretextGraph /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/anthrisci2.pretext
+
+zcat bedgraph.file.gz | PretextGraph -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/anthrisci2.pretext 
+bigWigToBedGraph bigwig.file /dev/stdout | PretextGraph -i input.pretext -n "graph name"
+```
+```bash
+echo scaffold_17_3 > temp_search.txt
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 /hpc-home/did23faz/git_repos/Scripts/NBI/seq_get.py --id_file temp_search.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/anthrisci2.curated_primary.no_mt.unscrubbed.fa --output ant_17.fa
+
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/ant_17.fa
+Query=/jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Staphylococcus/xylosus/GCF_000709415.1/GCA_000709415.1_ASM70941v1_genomic.fna
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
+OutFile=scaff17-3
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_nucmer.sh $Reference $Query $OutDir $OutFile
+#58098311
+source package 70b0e328-5a66-4c7c-971b-b2face8a50d4
+source package 09b2c824-1ef0-4879-b4d2-0a04ee1bbd6d
+mummerplot -l -c /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17-3.delta
+mummerplot -color /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/scaff17-3.delta
+
+#The contaminant contig scaffold_17 is Staphylococcus xylosus, almost the full genome aligns.
+```
+#### Curation
+Tom Mathers says anthrisci2.pretext.savestate_4 is best
 
 
 
