@@ -1,6 +1,9 @@
 # Candidatus liberibacter solanacearum assembly
 
 Investigate scaffold 18 of the T.apicales assembly:
+```bash
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_18.fasta | grep -v '>' | wc -c #1,918,207
+```
 
 #### blast
 ```bash
@@ -733,6 +736,24 @@ sbatch $ProgDir/run_deeplasmid.sh $Contigs $OutDir $OutFile
 ```
 #### circlator
 ```bash
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v1.fa
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+OutDir=$(dirname $Genome)
+Datatype=hifi
+Correct_Datatype=pacbio-hifi
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_inspector.sh $OutFile $OutDir $Genome $Datatype $Correct_Datatype $Read1 $Read2
+#59074264
+
+circlator fixstart --verbose /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v1.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v2
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v2.fasta /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v2.fasta -p circ
+mummerplot -color -layout circ.delta
+```
+```bash
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v1.fa
 Read_type=illumina
 OutDir=$(dirname $Assembly)/circlator
@@ -824,11 +845,24 @@ Liberibacter phage SGCA5-1 clone contig2 genomic sequence
 36,022 bp linear DNA 
 KX879601.1 GI:1102356451
 
-cat Liberibacter/phages/*.fna > temp_phages.fasta
-nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_18.fasta /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_phages.fasta -p phage
-show-coords -T phage.delta > phage.coords
-mummerplot -l -c phage.delta
-mummerplot -color phage.delta
+cat Liberibacter/phages/*.fna | cut -d ' ' -f1 > temp_phages2.fasta
+cat temp_phages2.fasta | grep '>'
+>CP060690.1
+>CP124119.1
+>JF773396.1
+>KX879601.1
+>KX879602.1
+>KY661963.1
+>MT899443.1
+>MT899444.1
+>NC_019549.1
+>NC_019550.1
+>OP072401.1
+>OP072565.1
+>OP072666.1
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_18.fasta temp_phages2.fasta -p phage
+mummerplot -color -layout phage.delta
 ```
 ```bash
 20. Candidatus Liberibacter asiaticus genes for hypothetical protein, phage related protein, bordetella phage Bbp38 like protein, prophage antirepressor like protein, complete cds, isolate: Iw4 (Miyako-13)
@@ -1097,6 +1131,30 @@ sbatch $ProgDir/run_prokka.sh $Genome $OutDir $OutFile $Locustag
 
 grep '>' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/prokka/JIC_LsoCDa_1.0.faa | wc -l #2,024
 ```
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pgap
+~/pgap.py --no-internet --no-self-update --docker singularity --container-path /hpc-home/did23faz/pgap.sif -r -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pgap -g /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v1.fa -s 'Candidatus Liberibacter solanacearum C'
+
+./pgap.py --no-internet --no-self-update --docker singularity --container-path /home/did23faz/pgap_2023-10-03.build7061.sif -r -o mg37_results -g $HOME/.pgap/test_genomes/MG37/ASM2732v1.annotation.nucleotide.1.fasta -s 'Mycoplasmoides genitalium'
+
+source package 1413a4f0-44e3-4b9d-b6c6-0f5c0048df88
+python3 pgap.py --no-internet --no-self-update --docker singularity --container-path ~/pgap_2023-10-03.build7061.sif -n -o mg37_results -g ~/.pgap/test_genomes/MG37/ASM2732v1.annotation.nucleotide.1.fasta -s 'Mycoplasmoides genitalium'
+python3 ~/pgap.py --debug --no-internet --no-self-update --docker singularity --container-path ~/pgap_2023-10-03.build7061.sif -r -o mg37_results -g ~/.pgap/test_genomes/MG37/ASM2732v1.annotation.nucleotide.1.fasta -s 'Mycoplasmoides genitalium'
+
+python3 ~/pgap.py --no-internet --no-self-update --docker singularity --container-path ~/pgap_2023-10-03.build7061.sif -n -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pgap -g /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v1.fa -s 'Candidatus liberibacter'
+
+~/pgap.py --debug --no-self-update --docker singularity --container-path ~/pgap_2023-10-03.build7061.sif -r -o mg37_results -g ~/.pgap/test_genomes/MG37/ASM2732v1.annotation.nucleotide.1.fasta -s 'Mycoplasmoides genitalium'
+
+#19248434 + 19248439,19248441,19248442 (gruffalo)
+#19250214, 19260710, 19260713  (gruffalo), 19261328, 19261425, 19261429, 19263765, 19264042, 19264056, 19264063, 19264068, 19264075: with 64 cpus
+```
+INFO:    Using cached SIF image
+PGAP version 2023-10-03.build7061 is up to date.
+Output will be placed in: /mnt/shared/scratch/theaven/apps/pgap/mg37_results
+WARNING: open files is less than the recommended value of 8000
+PGAP failed, docker exited with rc = 1
+Unable to find error in log file.
+
 #### Predector
 NOTE: predector is built for fungal effector prediction, however SignalP versions and tmhmm are run as part of the pipeline.
 
@@ -1511,4 +1569,307 @@ df.to_csv('/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacte
 ```
 ```bash
 
+```
+#### MCScanX
+```bash
+#Find the contiguity of Liberibacter assemblies:
+for file in $(ls Liberibacter/genomes/C*/ncbi_dataset/data/GCA_*/*.fna); do
+echo $(echo $file | cut -d '/' -f3)
+cat $file | grep '>' | wc -l
+cat $file | grep -v '>' | wc -c
+done
+
+for file in $(ls Liberibacter/genomes/C*/ncbi_dataset/data/GCA_*/*.fna); do
+Out=$(echo $file | sed 's@.fna@_fixstart@g')
+circlator fixstart --verbose $file $Out
+done
+
+mkdir -p temp_download/CLsoC_JIC1
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v2.fasta temp_download/CLsoC_JIC1/.
+
+
+for file in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/C*/ncbi_dataset/data/GCA_*/*fixstart.fasta); do
+OutDir=$(dirname $file)/prokka
+OutFile=$(basename $file | sed 's@.fasta@@g')
+Locustag=$(echo $file | cut -d '/' -f10)
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_prokka.sh $file $OutDir $OutFile $Locustag
+done
+#59376486, 59376512-85
+
+
+
+
+ls Liberibacter/genomes/CLso*/ncbi_dataset/data/GCA_*/*.fna
+
+CLsoB_ZC1 #1
+
+CLeu_ASUK1 #29
+CLeu_ASNZ1 #15
+
+CLct_Oxford #17
+
+CLcr_BT-1 #1
+CLcr_BT-0 #1
+
+CLbr_Asol15 #25
+
+CLas_TaiYZ2
+CLas_ReuSP1
+CLas_PYN
+CLas_psy62 #1
+CLas_PGD
+CLas_JXGC #1
+CLas_JRPAMB1
+CLas_Ishi-1 #1
+CLas_gxpsy #1
+CLas_GDCZ
+CLas_CoFLP
+CLas_AHCA1
+CLas_A4
+
+CLam_SaoPaulo #1
+CLam_PW_SP #22
+
+CLaf_PTSAPSY #1
+CLaf_Ang37 #1
+
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLaf_Ang37/ncbi_dataset/data/GCA_017869345.1/GCA_017869345.1_ASM1786934v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/1
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLaf_PTSAPSY/ncbi_dataset/data/GCA_001021085.1/GCA_001021085.1_ASM102108v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/66
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLam_PW_SP/ncbi_dataset/data/GCA_000350385.1/GCA_000350385.1_Velvet_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/2
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLam_SaoPaulo/ncbi_dataset/data/GCA_000496595.1/cds_from_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/3
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLam_SaoPaulo/ncbi_dataset/data/GCA_000496595.1/GCA_000496595.1_ASM49659v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/4
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_9PA/ncbi_dataset/data/GCA_013778575.1/GCA_013778575.1_ASM1377857v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/5
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_A4/ncbi_dataset/data/GCA_000590865.3/GCA_000590865.3_ASM59086v3_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/6
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_AHCA17/ncbi_dataset/data/GCA_009859045.1/GCA_009859045.1_ASM985904v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/7
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_AHCA1/ncbi_dataset/data/GCA_003143875.1/GCA_003143875.1_ASM314387v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/8
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_A-SBCA19/ncbi_dataset/data/GCA_014892655.1/GCA_014892655.1_ASM1489265v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/9
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_AS-TNSK3/ncbi_dataset/data/GCA_029948395.1/GCA_029948395.1_ASM2994839v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/10
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_BCSMX/ncbi_dataset/data/GCA_025606285.1/GCA_025606285.1_ASM2560628v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/11
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_CHUC/ncbi_dataset/data/GCA_009756785.1/GCA_009756785.1_ASM975678v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/12
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_CoFLP/ncbi_dataset/data/GCA_014107775.1/GCA_014107775.1_ASM1410777v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/13
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_CRCFL16/ncbi_dataset/data/GCA_009756805.1/GCA_009756805.1_ASM975680v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/14
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_DUR1TX1/ncbi_dataset/data/GCA_009756745.1/GCA_009756745.1_ASM975674v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/15
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_DUR2TX1/ncbi_dataset/data/GCA_009756725.1/GCA_009756725.1_ASM975672v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/16
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_FL17/ncbi_dataset/data/GCA_000820625.1/GCA_000820625.1_ASM82062v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/17
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_GDCZ/ncbi_dataset/data/GCA_030585885.1/GCA_030585885.1_ASM3058588v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/18
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_GFR3TX3/ncbi_dataset/data/GCA_009756735.1/GCA_009756735.1_ASM975673v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/19
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_gxpsy/ncbi_dataset/data/GCA_000346595.1/GCA_000346595.1_ASM34659v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/21
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_HHCA16/ncbi_dataset/data/GCA_009756845.1/GCA_009756845.1_ASM975684v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/22
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_HHCA/ncbi_dataset/data/GCA_000724755.2/GCA_000724755.2_HHCA-assembly_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/23
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_Ishi-1/ncbi_dataset/data/GCA_000829355.1/GCA_000829355.1_ASM82935v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/24
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_JRPAMB1/ncbi_dataset/data/GCA_013462975.1/GCA_013462975.1_ASM1346297v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/25
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_JXGC/ncbi_dataset/data/GCA_002216815.1/GCA_002216815.1_ASM221681v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/26
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_JXGZ-1/ncbi_dataset/data/GCA_009764765.1/GCA_009764765.1_ASM976476v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/27
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_LBR19TX2/ncbi_dataset/data/GCA_009756885.1/GCA_009756885.1_ASM975688v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/28
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_LBR23TX5/ncbi_dataset/data/GCA_009756915.1/GCA_009756915.1_ASM975691v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/29
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_MAG1/ncbi_dataset/data/GCA_025938115.1/GCA_025938115.1_ASM2593811v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/30
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_Mex8/ncbi_dataset/data/GCA_009756755.1/GCA_009756755.1_ASM975675v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/31
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_MFL16/ncbi_dataset/data/GCA_009756815.1/GCA_009756815.1_ASM975681v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/32
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_PA19/ncbi_dataset/data/GCA_013309695.2/GCA_013309695.2_ASM1330969v2_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/33
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_PA20/ncbi_dataset/data/GCA_016758155.2/GCA_016758155.2_ASM1675815v2_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/34
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_PGD/ncbi_dataset/data/GCA_028473705.1/GCA_028473705.1_ASM2847370v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/35
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_psy62/ncbi_dataset/data/GCA_000023765.2/GCA_000023765.2_ASM2376v2_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/36
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_PYN/ncbi_dataset/data/GCA_028473725.1/GCA_028473725.1_ASM2847372v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/37
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_ReuSP1/ncbi_dataset/data/GCA_022220845.1/GCA_022220845.1_ASM2222084v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/38
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_SGCA16/ncbi_dataset/data/GCA_009756855.1/GCA_009756855.1_ASM975685v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/39
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_SGCA1/ncbi_dataset/data/GCA_003149415.1/GCA_003149415.1_ASM314941v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/40
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_SGCA5/ncbi_dataset/data/GCA_001430705.1/GCA_001430705.1_ASM143070v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/41
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_SGpsy/ncbi_dataset/data/GCA_003336865.1/GCA_003336865.1_ASM333686v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/42
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_Tabriz3/ncbi_dataset/data/GCA_022343665.1/GCA_022343665.1_ASM2234366v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/43
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_TaiYZ2/ncbi_dataset/data/GCA_014217975.1/GCA_014217975.1_ASM1421797v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/44
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_TX1712/ncbi_dataset/data/GCA_003160765.1/GCA_003160765.1_ASM316076v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/45
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_TX2351/ncbi_dataset/data/GCA_001969535.1/GCA_001969535.1_ASM196953v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/46
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_YCPsy/ncbi_dataset/data/GCA_001296945.1/GCA_001296945.1_ASM129694v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/47
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_YNHK-2/ncbi_dataset/data/GCA_018282155.1/GCA_018282155.1_ASM1828215v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/48
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_YNJS7C/ncbi_dataset/data/GCA_003615235.1/GCA_003615235.1_ASM361523v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/49
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_YNXP-1/ncbi_dataset/data/GCA_009764755.1/GCA_009764755.1_ASM976475v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/50
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLas_YTMX/ncbi_dataset/data/GCA_025606305.1/GCA_025606305.1_ASM2560630v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/51
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLbr_Asol15/ncbi_dataset/data/GCA_036858155.1/GCA_036858155.1_ASM3685815v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/52
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLcr_BT-0/ncbi_dataset/data/GCA_001543305.1/GCA_001543305.1_ASM154330v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/53
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLcr_BT-1/ncbi_dataset/data/GCA_000325745.1/GCA_000325745.1_ASM32574v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/54
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLct_Oxford/ncbi_dataset/data/GCA_016808295.1/GCA_016808295.1_ASM1680829v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/55
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLeu_ASNZ1/ncbi_dataset/data/GCA_003045065.1/GCA_003045065.1_ASM304506v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/56
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLeu_ASUK1/ncbi_dataset/data/GCA_019843875.1/GCA_019843875.1_ASM1984387v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/57
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoA_JNVH01/ncbi_dataset/data/GCA_000756225.1/GCA_000756225.1_ASM75622v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/58
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoA_NZ1/ncbi_dataset/data/GCA_000968085.1/GCA_000968085.1_ASM96808v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/59
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoA_RSTM/ncbi_dataset/data/GCA_001414235.1/GCA_001414235.1_ASM141423v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/60
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoB_HenneA/ncbi_dataset/data/GCA_000968075.1/GCA_000968075.1_ASM96807v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/61
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoB_ZC1/ncbi_dataset/data/GCA_000183665.1/GCA_000183665.1_ASM18366v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/62
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoC_FIN111/ncbi_dataset/data/GCA_001983655.1/GCA_001983655.1_ASM198365v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/63
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoC_FIN114/ncbi_dataset/data/GCA_001983675.1/GCA_001983675.1_ASM198367v1_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/64
+nucmer --maxmatch --nosimplify Liberibacter/genomes/CLsoD_ISR100/ncbi_dataset/data/GCA_002918245.2/GCA_002918245.2_ASM291824v2_genomic.fna temp_phages2.fasta -p Liberibacter/phages/nucmer/65
+
+mummerplot -color -layout Liberibacter/phages/nucmer/1.delta #nothing visible
+mummerplot -color -layout Liberibacter/phages/nucmer/2.delta #nothing
+mummerplot -color -layout Liberibacter/phages/nucmer/3.delta #nothing
+mummerplot -color -layout Liberibacter/phages/nucmer/4.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/5.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/6.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/7.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/8.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/9.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/10.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/11.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/12.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/13.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/14.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/15.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/16.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/17.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/18.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/19.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/21.delta #1,2,3,4,5,6,7,8,9,10 ##
+mummerplot -color -layout Liberibacter/phages/nucmer/22.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/23.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/24.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/25.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/26.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/27.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/28.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/29.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/30.delta #1,2,3,4,5,6,7,8,9,10 low similarity
+mummerplot -color -layout Liberibacter/phages/nucmer/31.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/32.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/33.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/34.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/35.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/36.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/37.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/38.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/39.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/40.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/41.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/42.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/43.delta #nothing
+mummerplot -color -layout Liberibacter/phages/nucmer/44.delta #1,2,3,4,5,6,7,8,9,10 #
+mummerplot -color -layout Liberibacter/phages/nucmer/45.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/46.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/47.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/48.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/49.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/50.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/51.delta #1,2,3,4,5,6,7,8,9,10
+mummerplot -color -layout Liberibacter/phages/nucmer/52.delta #nothing
+mummerplot -color -layout Liberibacter/phages/nucmer/53.delta #nothing
+mummerplot -color -layout Liberibacter/phages/nucmer/54.delta #nothing
+mummerplot -color -layout Liberibacter/phages/nucmer/55.delta #nothing
+mummerplot -color -layout Liberibacter/phages/nucmer/56.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/57.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/58.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/59.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/60.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/61.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/62.delta #nothing visible
+mummerplot -color -layout Liberibacter/phages/nucmer/63.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/64.delta #small alignments
+mummerplot -color -layout Liberibacter/phages/nucmer/65.delta #small hits for 6
+mummerplot -color -layout Liberibacter/phages/nucmer/66.delta #nothing visible
+
+
+
+```
+```bash
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master
+
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoD_ISR100/ncbi_dataset/data/GCA_002918245.2/prokka/GCA_002918245.2_ASM291824v2_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoD_ISR100.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/prokka/assembly_v2.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoC_JIC.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN114/ncbi_dataset/data/GCA_001983675.1/prokka/GCA_001983675.1_ASM198367v1_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoC_FIN114.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN111/ncbi_dataset/data/GCA_001983655.1/prokka/GCA_001983655.1_ASM198365v1_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoC_FIN111.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_ZC1/ncbi_dataset/data/GCA_000183665.1/prokka/GCA_000183665.1_ASM18366v1_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoB_ZC1.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_HenneA/ncbi_dataset/data/GCA_000968075.1/prokka/GCA_000968075.1_ASM96807v1_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoB_HenneA.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_RSTM/ncbi_dataset/data/GCA_001414235.1/prokka/GCA_001414235.1_ASM141423v1_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoA_RSTM.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_NZ1/ncbi_dataset/data/GCA_000968085.1/prokka/GCA_000968085.1_ASM96808v1_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoA_NZ1.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_JNVH01/ncbi_dataset/data/GCA_000756225.1/prokka/GCA_000756225.1_ASM75622v1_genomic_fixstart.gff | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene;locus_tag@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/CLsoA_JNVH01.gff
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/*.gff > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master/master.gff
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master/master.gff tr ' ' '\t' > temp.gff && mv temp.gff /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master/master.gff
+```
+```bash
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoD_ISR100/ncbi_dataset/data/GCA_002918245.2/prokka/GCA_002918245.2_ASM291824v2_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoD_ISR100 -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/prokka/assembly_v2.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoC_JIC -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN114/ncbi_dataset/data/GCA_001983675.1/prokka/GCA_001983675.1_ASM198367v1_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoC_FIN114 -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN111/ncbi_dataset/data/GCA_001983655.1/prokka/GCA_001983655.1_ASM198365v1_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoC_FIN111 -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_ZC1/ncbi_dataset/data/GCA_000183665.1/prokka/GCA_000183665.1_ASM18366v1_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoB_ZC1 -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_HenneA/ncbi_dataset/data/GCA_000968075.1/prokka/GCA_000968075.1_ASM96807v1_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoB_HenneA -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_RSTM/ncbi_dataset/data/GCA_001414235.1/prokka/GCA_001414235.1_ASM141423v1_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoA_RSTM -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_NZ1/ncbi_dataset/data/GCA_000968085.1/prokka/GCA_000968085.1_ASM96808v1_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoA_NZ1 -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_JNVH01/ncbi_dataset/data/GCA_000756225.1/prokka/GCA_000756225.1_ASM75622v1_genomic_fixstart.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/CLsoA_JNVH01 -dbtype prot
+
+for ID in CLsoD_ISR100 CLsoC_JIC CLsoC_FIN114 CLsoC_FIN111 CLsoB_ZC1 CLsoB_HenneA CLsoA_RSTM CLsoA_NZ1 CLsoA_JNVH01; do
+  for ID2 in CLsoD_ISR100 CLsoC_JIC CLsoC_FIN114 CLsoC_FIN111 CLsoB_ZC1 CLsoB_HenneA CLsoA_RSTM CLsoA_NZ1 CLsoA_JNVH01; do
+    DB=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/${ID}
+    Query=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID2}/*/data/*/prokka/*.faa)
+    Out=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/${ID2}_v_${ID}.blast5
+    blastp -db ${DB} -query ${Query} -num_threads 1 -evalue 1e-20 -num_alignments 200 -outfmt 6 -out ${Out}
+  done
+done
+#59377072
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/intermediateData/*.blast5 > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master/master.blast tr ' ' '\t' > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master/master.blast
+```
+```bash
+source package 038f5eb6-dc79-46b5-bb52-a86ed67aa64a
+MCScanX /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/master/master
+```
+24525 matches imported (82310 discarded)
+2469 pairwise comparisons
+835 alignments generated
+
+```bash
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master
+for ID in CLsoB_ZC1 CLeu_ASUK1 CLeu_ASNZ1 CLct_Oxford CLcr_BT-1 CLcr_BT-0 CLbr_Asol15 CLas_psy62 CLas_JXGC CLas_Ishi-1 CLas_gxpsy CLam_SaoPaulo CLam_PW_SP CLaf_PTSAPSY CLaf_Ang37 CLsoC_JIC; do
+  gff=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID}/*/data/*/prokka/*.gff)
+  awk '$3 == "gene" {split($9, parts, ";"); split(parts[1], subparts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, subparts[2]}' ${gff} | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/${ID}.gff
+done
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/*.gff > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.gff
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.gff tr ' ' '\t' > temp.gff && mv temp.gff /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.gff
+
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB
+for ID in CLsoB_ZC1 CLeu_ASUK1 CLeu_ASNZ1 CLct_Oxford CLcr_BT-1 CLcr_BT-0 CLbr_Asol15 CLas_psy62 CLas_JXGC CLas_Ishi-1 CLas_gxpsy CLam_SaoPaulo CLam_PW_SP CLaf_PTSAPSY CLaf_Ang37 CLsoC_JIC; do
+  Assembly=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID}/*/data/*/prokka/*.faa)
+  DB=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/${ID}
+  makeblastdb -in ${Assembly} -out ${DB} -dbtype prot
+  for ID2 in CLsoB_ZC1 CLeu_ASUK1 CLeu_ASNZ1 CLct_Oxford CLcr_BT-1 CLcr_BT-0 CLbr_Asol15 CLas_psy62 CLas_JXGC CLas_Ishi-1 CLas_gxpsy CLam_SaoPaulo CLam_PW_SP CLaf_PTSAPSY CLaf_Ang37 CLsoC_JIC; do
+    Query=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID2}/*/data/*/prokka/*.faa)
+    Out=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/${ID2}_v_${ID}.blast
+    blastp -db ${DB} -query ${Query} -num_threads 32 -evalue 1e-10 -num_alignments 20 -outfmt 6 -out ${Out}
+  done
+done
+#59379025
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/*.blast > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.blast tr ' ' '\t' > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.blast
+
+source package 038f5eb6-dc79-46b5-bb52-a86ed67aa64a
+MCScanX /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master
+```
+170176 matches imported (170385 discarded)
+3208 pairwise comparisons
+4152 alignments generated
+
+
+To detect putative prophages, we used a combination of VirSorter2 (v2.2.2; Guo et al., 2021, p. 2), CheckV (v.0.7.0 (Nayfach et al., 2021)) and VIBRANT (v1.2.1; Kieft, Zhou & Anantharaman, 2020). First, all genomes were analyzed with VirSorter2 (settings –include-groups “dsDNAphage,ssDNA,NCLDV,laviviridae”). Resulting viral regions were retained if they scored at least 0.5 for double stranded DNA phage (dsDNA phage, n = 539). Host genome regions flanking these viral sequences were then trimmed with the CheckV ’contamination’ command. To exclude highly degraded phages, trimmed sequences were retained only if they were at least 5 kb in length (n = 462). Of these resulting sequences, a region was considered a putative prophage if it scored at least 0.9 with VirSorter2 (n = 357). Additionally, those with VirSorter scores of 0.5–0.9 were further analyzed with VIBRANT and were retained as putative prophage if VIBRANT also classified these sequences as virus (n = 74). This resulted in a final set of 431 putative prophages.
+
+#### VirSorter2
+```bash
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta); do
+OutDir=$(dirname $Genome)/virsorter2
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_virsorter2.sh $Genome $OutDir
+done
+#59385582
+```
+#### Checkv
+```bash
+source package 583ccd01-1b80-4f0b-9027-b4abdd958a9d
+```
+#### VIBRANT
+```bash
+source package 98bd0520-6518-47be-92c1-20cf52f558e5
 ```

@@ -2767,6 +2767,17 @@ makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assemb
 blastn -query ../Symbionts/Candidatus/Carsonella/ruddii/GCA_000287275.1/GCA_000287275.1_ASM28727v1_genomic.fna -db carant -out carant -evalue 1e-5 -outfmt 6 -num_threads 1
 awk '{print $2}' carant | sort | uniq | wc -l #222
 ```
+#### FCS
+```bash
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered.fa
+TAXID=2023874
+OutDir=$(dirname $Genome)/fcs
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_fcs.sh $Genome $TAXID $OutDir $OutFile
+#59164346
+```
 
 ### Final assembly assessment
 
@@ -2893,7 +2904,20 @@ OutFile=$(basename $Assembly | sed 's@.fa@@g')
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_juicebox-prep.sh $Assembly $Read1 $Read2 $OutDir $OutFile
-#58947779
+#58971621
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+OutDir=$(dirname $Assembly)/3ddna
+OutFile=$(basename $Assembly | sed 's@.fasta@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_anthrisci/HiC/anthrisci_286154-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
+#58971633
+
+source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
+java17 -Xmx48000m -Djava.awt.headless=true -jar ~/git_repos/Scripts/NBI/juicer_tools_1.22.01.jar pre --threads 32 mapped.pairs hic.hic genome.genome
+
 
 #From omni-c guide
 source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
@@ -2927,6 +2951,7 @@ source jdk-1.7.0_25; source bwa-0.7.17;source samtools-1.6;source gnu_parallel-2
 singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/juicer.sif juicer.sh -D /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer -g OutFile -z references/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa -y restriction_sites/OutFile_DpnII.txt -s DpnII -t 32 -p restriction_sites/OutFile_DpnII.chrom.sizes 
 #58959622 pwd=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/juicer/references
 
+source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25
 
 
 source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25
@@ -2938,6 +2963,9 @@ source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25
 
 bwa mem -SP5M
 
+submit-slurm_v1.1.pl -q ei-medium -m 100000 -c 2 -t 2-
+00:00 -e -j Smis_HiC_file -i "source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25;~/3ddna-
+master/visualize/run-assembly-visualizer.sh draft.assembly aligned/merged_nodups.txt"
 
 singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/juicer.sif juicer.sh -t 16 -d $WorkDir/juicer -g saundersiae -z genome_wrapped.fa -y ${OutFile}_Phase.txt -p genome_wrapped.fa.fai -D /opt/juicer-1.6.2/CPU
 ```
@@ -2978,12 +3006,12 @@ singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/earl
 
 Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
 OutFile=$(basename $Genome | sed 's@.fa@@g')
-OutDir=$(dirname $Genome)
+OutDir=$(dirname $Genome)/earlgrey
 RMsearch=arthropoda
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_earlgrey.sh $Genome $OutFile $OutDir $RMsearch
-#58797251, 58852735 ran out of memory with 184GB, 58929433 time out at 2 days, 58940974
+#58797251, 58852735 ran out of memory with 184GB, 58929433 time out at 2 days, 58940974, 59071710
 
 singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/earlgrey4.0.6.sif earlGrey -g $Genome -s $OutFile -o $OutDir -t 1 -d yes -r arthropoda
 ```
@@ -3073,7 +3101,7 @@ done
 cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
 
 cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda.fa > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
-for file in $(ls ../Genomes/*/*/*/protein.faa | grep -v 'Frankiniella\|Thrips\|Megalurothrips\|Tribolium\|Drosophila\|Bombyx\|Apis\|Anopheles'); do
+for file in $(ls ../Genomes/*/*/*/protein.faa | grep -v 'Frankliniella\|Thrips\|Megalurothrips\|Tribolium\|Drosophila\|Bombyx\|Apis\|Anopheles'); do
 awk '/^>/ { print (NR==1 ? "" : RS) $0; next } { printf "%s", $0 } END { printf RS }' $file | sed 's@*@@g'| sed 's@|@@g'| sed 's@ @@g'>> /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
 done
 
@@ -3136,6 +3164,15 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName 
 #58956715
+
+Proteome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.aa  
+OutDir=$(dirname $Proteome)/swissprot
+SwissDbDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/Uniprot/swissprot_2024_March_10
+SwissDbName=uniprot_sprot
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName 
+#59328939
 ```
 #### Interproscan
 ```bash
@@ -3145,6 +3182,13 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_interproscan.sh $InFile $OutDir
 #58949316
+
+InFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.aa  
+OutDir=$(dirname $InFile)/interproscan
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_interproscan.sh $InFile $OutDir
+#59328996
 ```
 #### Pretextgraph
 ```bash

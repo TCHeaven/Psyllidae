@@ -140,10 +140,22 @@ while [ $Jobs -gt 190 ]; do
     printf "."
     Jobs=$(squeue -u did23faz| grep 'RAxML'| wc -l)
 done
-sbatch $ProgDir/run_RAxML_msa.sh $Alignment $Prefix $OutDir 
+sbatch $ProgDir/run_RAxML_msa.sh $Alignment $OutDir $Prefix
 done
+#ERROR: $Prefix and $OutDir were the wrong way around resulting in evaluations being deleted, results are GTR+G
+
+#Tested propberly for 9997at7524:
+#9997at7524.raxml.log:AIC score: 88062.537364 / AICc score: 88476.378774 / BIC score: 89480.735172
+#GTR+G+FO.raxml.log:AIC score: 88062.550680 / AICc score: 88476.392090 / BIC score: 89480.748487
+#GTR+G.raxml.log:AIC score: 88062.550680 / AICc score: 88476.392090 / BIC score: 89480.748487
+#GTR+R4+FO.raxml.log:AIC score: 88049.098703 / AICc score: 88481.312512 / BIC score: 89490.469678
+#GTR.raxml.log:AIC score: 97980.036779 / AICc score: 98390.278538 / BIC score: 99393.599953
+#JC+G.raxml.log:AIC score: 90954.927524 / AICc score: 91340.650467 / BIC score: 92336.048264
+#JC.raxml.log:AIC score: 100426.479828 / AICc score: 100808.795163 / BIC score: 101802.965936
+#Lower is better, score for GTR+G is ~ as good as any other method, therefore not worth retesting all the trees.
 
 mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/RAxML
+
 count=0
 for gene in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/*/*_edit.fasta); do
 ID=$(echo $gene | cut -d '/' -f11)
@@ -152,9 +164,70 @@ x=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/nano_diagnostics/analysis
             if [[ -f ${x} ]]; then
                ((count++))
             fi
-#mv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/nano_diagnostics/analysis/phylogeny/RAxML/${ID}* 
+mv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/nano_diagnostics/analysis/phylogeny/RAxML/${ID}* /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/RAxML/.
 done
 echo "$count"
+
+
+#Combine individual gene trees into a consensus tree:
+source package 0351788b-6639-43fb-8e80-f28600f83cb1
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/RAxML/*.raxml.bestTree > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/tree-files.txt
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/RAxML/*.raxml.bootstraps > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/bs-files.txt
+astral5 -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/tree-files.txt -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/hemiptera_phylogeny.astral.tre
+astral5 -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/tree-files.txt -b /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/bs-files.txt -r 1000 -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/hemiptera_phylogeny.bootstrapped.astral.tre
+tail -n 1 /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/hemiptera_phylogeny.bootstrapped.astral.tre > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/hemiptera_phylogeny.bootstrapped.consensus.astral.tre
+astral5 -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/hemiptera_phylogeny.bootstrapped.consensus.astral.tre -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/hemiptera_phylogeny.bootstrapped.astral.tre -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/hemiptera_phylogeny.bootstrapped.scored.astral.tre 
+#59183148,59185037,59260253, 59315880 (with multithreading)
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir
+for gene in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/*_aligned.fasta); do
+ln -s $gene /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir/.
+done
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir2
+for gene in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir/*_aligned.fasta); do
+name=$(basename $gene)
+cat $gene | cut -d '|' -f1 > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir2/${name}
+done
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir3
+for gene in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/*/*_edit.fasta); do
+ln -s $gene /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir3/.
+done
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/iqtree2
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/iqtree2
+AlignDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir3/
+cpu=4
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/iqtree_2.3.0.sif iqtree2 -s $AlignDir -m MFP -mtree -T AUTO --threads-max $cpu -b 1000 --verbose
+#59196096, 59251934, 59260066
+
+#Not sure if is running correctly, find model seperately:
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/iqtree2-test
+cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/iqtree2-test
+AlignDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/phylogeny/busco_nt/AlignDir3/
+cpu=8
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/iqtree_2.3.0.sif iqtree2 -s $AlignDir -m MF -T AUTO --threads-max $cpu
+#59316762, more cpus: 59322062
+```
+```bash
+#Run RAxML
+conda activate raxml
+for Alignment in $(ls /mnt/shared/scratch/theaven/uncompressed/hogenhout/phylogeny/9997at7524_nt_aligned_trimmed_edit.fasta); do
+Prefix=$(basename $Alignment | cut -f1 -d '_')
+OutDir=/mnt/shared/scratch/theaven/uncompressed/hogenhout/phylogeny/RAxML/$Prefix
+ProgDir=/home/theaven/scratch/apps/phylogeny
+mkdir -p $OutDir
+Jobs=$(squeue -u theaven| grep 'RAxML'  | wc -l)
+while [ $Jobs -gt 50 ]; do
+    sleep 300s
+    printf "."
+    Jobs=$(squeue -u theaven| grep 'RAxML'| wc -l)
+done
+sbatch $ProgDir/run_RAxML_msa.sh $Alignment $OutDir $Prefix
+done
+#19226105
+conda deactivate
 ```
 
 ```python
@@ -191,13 +264,13 @@ done
 
 grep 'gene' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.gff | wc -l #21,036
 grep 'gene' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.gff | wc -l #18,217
-grep 'gene' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.gff | wc -l #34,557
+grep 'gene' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.gff | wc -l #27,628
 ```
 #### AGAT
 ```bash
 source package 4c883633-af2d-4fac-ab67-a1574f7fe079
 
-Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Genomes/Diaphorina/citri/GCA_000475195.1/GCA_000475195.1_Diaci_psyllid_genome_assembly_version_1.1_genomic.fna
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Genomes/Diaphorina/citri/GCA_030643865.1/GCA_030643865.1_ASM3064386v1_genomic.fna
 Gff=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.gff
 OutFile=$(dirname $Gff)/$(basename $Gff | sed 's@.gff@.faa@g')
 agat_sp_extract_sequences.pl -g $Gff -f $Genome -t cds --output $OutFile --clean_final_stop --protein
@@ -227,6 +300,108 @@ Gff=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_
 OutFile=$(dirname $Gff)/$(basename $Gff | sed 's@.gff@.faa@g')
 agat_sp_extract_sequences.pl -g $Gff -f $Genome -t cds --output $OutFile --clean_final_stop --protein
 ```
+```bash
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.gff | awk '{print $1, $9, $4, $5}' | awk 'NF{print "Dc" $0}' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Dc.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.gff | awk '{print $1, $9, $4, $5}' | awk 'NF{print "Bc" $0}' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Bc.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.gff | awk '{print $1, $9, $4, $5}' | awk 'NF{print "Pv" $0}' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Pv.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.gff | awk '{print $1, $9, $4, $5}' | awk 'NF{print "Tp" $0}' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Tp.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.gff | awk '{print $1, $9, $4, $5}' | awk 'NF{print "Tn" $0}' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Tn.gff
+awk '$3 == "gene" {split($9, parts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, parts[2]}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.gff | awk '{print $1, $9, $4, $5}' | awk 'NF{print "Tu" $0}' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Tu.gff
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/*.gff > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.gff
+#.gff variant names do not have .1 variant information, blast file gene names do
+```
+
+
+```bash
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/D_citri -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/B_cockerelli -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/P_venusta -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_apicales -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_anthrisci -dbtype prot
+makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.faa -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_urticae -dbtype prot
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/D_citri -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/B_cockerelli_v_D_citri.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/D_citri -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/P_venusta_v_D_citri.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/D_citri -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_D_citri.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/D_citri -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_D_citri.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/D_citri -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_urticae_v_D_citri.blast
+#59190238
+
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/B_cockerelli -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/P_venusta_v_B_cockerelli.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/B_cockerelli -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_B_cockerelli.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/B_cockerelli -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_B_cockerelli.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/B_cockerelli -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_urticae_v_B_cockerelli.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/B_cockerelli -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/D_citri_v_B_cockerelli.blast
+#59190267
+
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/P_venusta -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/B_cockerelli_v_P_venusta.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/P_venusta -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_P_venusta.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/P_venusta -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_P_venusta.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/P_venusta -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_urticae_v_P_venusta.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/P_venusta -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/D_citri_v_P_venusta.blast
+#59190270
+
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_apicales -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/B_cockerelli_v_T_apicales.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_apicales -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/P_venusta_v_T_apicales.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_apicales -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_T_apicales.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_apicales -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_urticae_v_T_apicales.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_apicales -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/D_citri_v_T_apicales.blast
+#59190272
+
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_anthrisci -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/B_cockerelli_v_T_anthrisci.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_anthrisci -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/P_venusta_v_T_anthrisci.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_anthrisci -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_T_anthrisci.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_anthrisci -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_urticae_v_T_anthrisci.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_anthrisci -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/D_citri_v_T_anthrisci.blast
+#59190274
+
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_urticae -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/B_cockerelli_v_T_urticae.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_urticae -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/P_venusta_v_T_urticae.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_urticae -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_T_urticae.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_urticae -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_T_urticae.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_urticae -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/D_citri_v_T_urticae.blast
+#59190275
+
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_urticae -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.faa -num_threads 32 -evalue 1e-10 -num_alignments 6 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_urticae_v_T_urticae.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_anthrisci -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_anthrisci.faa -num_threads 32 -evalue 1e-10 -num_alignments 6 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_T_anthrisci.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/T_apicales -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa -num_threads 32 -evalue 1e-10 -num_alignments 6 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_T_apicales.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/P_venusta -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/P_venusta/P_venusta.faa -num_threads 32 -evalue 1e-10 -num_alignments 6 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/P_venusta_v_P_venusta.blast
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/B_cockerelli -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/B_cockerelli/B_cockerelli.faa -num_threads 32 -evalue 1e-10 -num_alignments 6 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/B_cockerelli_v_B_cockerelli.blast 
+blastp -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/ncbiDB/D_citri -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -num_threads 32 -evalue 1e-10 -num_alignments 6 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/helixer/D_citri/D_citri.faa -num_threads 32 -evalue 1e-10 -num_alignments 5 -outfmt 6 -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/D_citri_v_D_citri.blast
+#59196288
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/*.blast > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.blast
+awk 'BEGIN {FS=OFS="\t"} {sub(/\.1$/, "", $1); sub(/\.1$/, "", $2); print}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.blast > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.blast tr ' ' '\t' > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.gff tr ' ' '\t' > temp.gff && mv temp.gff /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master.gff
+
+source package 038f5eb6-dc79-46b5-bb52-a86ed67aa64a
+MCScanX /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/master/master
+
+#1180980 matches imported (1343327 discarded)
+#188870 pairwise comparisons
+#
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_T_anthrisci.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_T_apicales.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_T_anthrisci.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_T_apicales.blast > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.blast
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Tn.gff /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/Tp.gff > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.gff
+awk 'BEGIN {FS=OFS="\t"} {sub(/\.1$/, "", $1); sub(/\.1$/, "", $2); print}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.blast > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.blast tr ' ' '\t' > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.gff tr ' ' '\t' > temp.gff && mv temp.gff /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master.gff
+MCScanX /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/tapitant/master
+```
+```bash
+awk '$1 ~ /^T_apicales_SUPER_4/ && $2 ~ /^T_anthrisci_SUPER_9/' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_T_anthrisci.blast
+awk '$1 ~ /^T_apicales_SUPER_9/ && $2 ~ /^T_anthrisci_SUPER_4/' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_apicales_v_T_anthrisci.blast
+
+awk '$1 ~ /^T_anthrisci_SUPER_4/ && $2 ~ /^T_apicales_SUPER_9/' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_T_apicales.blast
+awk '$1 ~ /^T_anthrisci_SUPER_9/ && $2 ~ /^T_apicales_SUPER_4/' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/mcscanx/intermediateData/T_anthrisci_v_T_apicales.blast
+```
+
+
 #### Genespace
 ```bash
 source package 03380c15-2730-4b19-b17a-5a435e152681
@@ -266,6 +441,7 @@ Out=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/synteny/g
 cat "$file" | awk '$3 == "gene"' | cut -f1,4,5,9 | awk -F'\t' -v OFS='\t' '{ $4 = $4 ".1"; gsub("ID=", "", $4); print }' > $Out
 done
 
+source package 038f5eb6-dc79-46b5-bb52-a86ed67aa64a
 source package 03380c15-2730-4b19-b17a-5a435e152681
 R
 ```

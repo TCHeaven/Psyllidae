@@ -3394,6 +3394,18 @@ mummerplot -color scaffold_867-2.delta
 ```
 Reciprocal alignment demonstrates that scaffold 867 is a complete Candidatus Carsonella ruddii genome.
 
+#### FCS
+```bash
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered.fa
+TAXID=121826
+OutDir=$(dirname $Genome)/fcs
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_fcs.sh $Genome $TAXID $OutDir $OutFile
+#59164364
+```
+
 ### Final assembly assessment
 
 Fresh blobplots were prepared for the filtered assembly:
@@ -3555,12 +3567,12 @@ sbatch $ProgDir/run_repeatmasker4.1.5.sh $Genome $OutFile $OutDir $Species $Repe
 ```bash
 Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.fa
 OutFile=$(basename $Genome | sed 's@.fa@@g')
-OutDir=$(dirname $Genome)
+OutDir=$(dirname $Genome)/earlgrey
 RMsearch=arthropoda
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_earlgrey.sh $Genome $OutFile $OutDir $RMsearch
-#58949706
+#58949706, 59071707 (output missing, checkpointed but cannot complete properly)
 ```
 
 ### RNASeq 
@@ -3682,6 +3694,15 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName 
 #58956717
+
+Proteome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.aa
+OutDir=$(dirname $Proteome)/swissprot
+SwissDbDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/Uniprot/swissprot_2024_March_10
+SwissDbName=uniprot_sprot
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName 
+#59329012
 ```
 #### Interproscan
 ```bash
@@ -3691,6 +3712,13 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_interproscan.sh $InFile $OutDir
 #58949513
+
+InFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/helixer/T_urticae.aa
+OutDir=$(dirname $InFile)/interproscan
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_interproscan.sh $InFile $OutDir
+#59329014
 ```
 
 Traceback (most recent call last):
