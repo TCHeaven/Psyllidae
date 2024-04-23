@@ -3536,6 +3536,38 @@ sbatch $ProgDir/run_juicebox-prep.sh $Assembly $Read1 $Read2 $OutDir $OutFile
 
 source package 3e7beb4d-f08b-4d6b-9b6a-f99cc91a38f9
 java17 -Xmx48000m -Djava.awt.headless=true -jar ~/git_repos/Scripts/NBI/juicer_tools_1.22.01.jar pre --threads 16 /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/juicebox/*.pairs /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/juicebox/*.hic /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/juicebox/*.genome
+
+
+ProgDir=~/git_repos/Wrappers/NBI
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.fa
+OutDir=$(dirname $Assembly)/bwa
+Outfile=$(basename $Assembly | sed 's@.fa@@g')_HiC
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Assembly $Read1 $Read2 
+#59554222
+```
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.fa
+OutDir=$(dirname $Assembly)/3ddna-vis
+OutFile=$(basename $Assembly | sed 's@.fa@@')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/HiC/urticae_286170-S3HiC_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_3dDNA.sh $Assembly $OutDir $OutFile $Read1 $Read2
+#59662488, 59673420
+
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/tmp_59662488/juicer/aligned/merged_nodups.txt /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/3ddna-vis/.
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/tmp_59662488/juicer/aligned/genome_wrapped.rawchrom* /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/3ddna-vis/.
+
+awk -f ~/git_repos/Scripts/NBI/generate-assembly-file-from-fasta.awk /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.fa > turt.assembly
+srun -p jic-long  -c 32 --mem 128G --pty bash
+source lastz-1.03.73;source gnu_parallel-20180322;source jdk-1.7.0_25
+~/git_repos/Scripts/NBI/run-assembly-visualizer.sh turt.assembly /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/tmp_59662488/juicer/aligned/merged_nodups.txt
+
+mv turt* /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/3ddna-vis/.
 ```
 
 ## Annotation
@@ -3614,6 +3646,53 @@ sbatch $ProgDir/run_fastqc.sh $QCdata $OutDir $OutFile
 done
 #58575048,9
 ```
+```bash
+#run cmd.exe
+C:\Users\did23faz\Downloads\sratoolkit.current-win64\sratoolkit.3.0.5-win64\bin>prefetch --max-size 1t --option-file C:\Users\did23faz\Documents\SRR1821976.txt --output-directory \\jic-hpc-data\Group-Scratch\Saskia-Hogenhout\tom_heaven
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/sra-tools_3.0.9.sif fastq-dump --split-files --gzip -O ../SRR1821976 ../SRR1821976/*.sra
+```
+```bash
+mv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/SRR1821976/SRR1821976_1.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/SRR1821976_5.fq.gz
+mv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/SRR1821976/SRR1821976_2.fastq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/SRR1821976_6.fq.gz
+
+for Rawdata in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/SRR1821976_*.fq.gz); do
+OutDir=$(dirname $Rawdata)/fastqc
+OutFile=$(basename $Rawdata | sed 's@.fq.gz@@g')
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_fastqc.sh $Rawdata $OutDir $OutFile
+done
+#59729113-4
+
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/); do
+    sample=$(echo $ReadDir | rev | cut -d '/' -f3 | rev)
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    Fread2=$(ls ${ReadDir}*_3.fq.gz)
+    Rread2=$(ls ${ReadDir}*_4.fq.gz)
+    Fread3=$(ls ${ReadDir}*_5.fq.gz)
+    Rread3=$(ls ${ReadDir}*_6.fq.gz)
+    OutDir=$(echo $ReadDir | sed 's@raw_data@dna_qc@g')trim_galore
+    OutFile=${sample}_trimmed_plus
+    Quality=20
+    Length=50
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir -p $OutDir
+    sbatch $ProgDir/run_trim_galore.sh $OutDir $OutFile $Quality $Length $Fread $Rread $Fread2 $Rread2 $Fread3 $Rread3 $Fread4 $Rread4 $Fread5 $Rread5
+done 
+#59729127
+
+for QCdata in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_urticae/RNASeq/trim_galore/T_urticae_trimmed_plus*.fq.gz); do
+OutDir=$(dirname $QCdata)/fastqc
+OutFile=$(basename $QCdata | sed 's@.fq.gz@@g')
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_fastqc.sh $QCdata $OutDir $OutFile
+done
+#59746249,50
+```
+
 #### HiSat2
 Hisat2 is the aligner used internally by braker, it is slower than star but requires less memory.
 ```bash
@@ -3645,6 +3724,34 @@ done
         1333480 (1.35%) aligned >1 times
 61.82% overall alignment rate
 
+```bash
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_urticae/RNASeq/trim_galore/); do
+    Fread=$(ls ${ReadDir}T_urticae_trimmed_plus_1.fq.gz)
+    Rread=$(ls ${ReadDir}T_urticae_trimmed_plus_2.fq.gz)
+    InGenome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.fa
+    OutDir=$(dirname $InGenome)/hisat2
+    OutFile=$(basename $InGenome | sed 's@.fa@@g')_plus
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir $OutDir
+    sbatch $ProgDir/run_HiSat2.sh $InGenome $Fread $Rread $OutDir $OutFile
+done
+#59746254
+```
+
+
+#### STAR
+```bash
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_urticae/RNASeq/trim_galore/); do
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    InGenome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.fa
+    OutDir=$(dirname $InGenome)/star
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir $OutDir
+    sbatch $ProgDir/run_star_align.sh $InGenome $Fread $Rread $OutDir 
+done
+#59434586
+```
 #### Braker
 ```bash
 cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
@@ -3668,6 +3775,87 @@ sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_databa
 #58575548
 
 grep '>' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/braker3/braker.aa | wc -l #13,150
+
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/hisat2/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected.bam
+Protein_database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
+Species=T_urticae
+OutDir=$(dirname $Masked_Genome)/braker2
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker2.1.6.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#59430262
+
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/star/star_aligmentAligned.sortedByCoord.out.bam
+Protein_database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa
+Species=T_urticae-rna
+OutDir=$(dirname $Masked_Genome)/braker1
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker2.1.6-rna.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#59438024
+
+conda activate braker
+Assembly=/home/theaven/scratch/uncompressed/hogenhout/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected_softmasked.fa
+OutDir=/home/theaven/scratch/uncompressed/hogenhout/T_urticae_braker1
+AcceptedHits=/home/theaven/scratch/uncompressed/hogenhout/T_urticae_star.bam
+GeneModelName=turt
+ProgDir=/home/theaven/scratch/apps/braker
+sbatch $ProgDir/braker1.sh $Assembly $OutDir $GeneModelName $AcceptedHits 
+conda deactivate
+#19524326,19577754
+
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected_softmasked.fa
+Gff=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_braker1/braker.gff3
+OutFile=$(dirname $Gff)/$(basename $Gff | sed 's@.gff3@.faa@g')
+agat_sp_extract_sequences.pl -g $Gff -f $Genome -t cds --output $OutFile --clean_final_stop --protein
+
+grep '>' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_braker1/braker.faa | wc -l
+#30,022
+
+conda activate braker
+Assembly=/home/theaven/scratch/uncompressed/hogenhout/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected_softmasked.fa
+OutDir=/home/theaven/scratch/uncompressed/hogenhout/T_urticae_braker2
+AcceptedHits=/home/theaven/scratch/uncompressed/hogenhout/Arthropoda+hemiptera.fa
+GeneModelName=turt2
+ProgDir=/home/theaven/scratch/apps/braker
+sbatch $ProgDir/braker2.sh $Assembly $OutDir $GeneModelName $AcceptedHits 
+conda deactivate
+#19521892
+
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_715m_12_2_3.0_0.5_filtered_HiFiPurged_HiFiPurged_curated_break_scaffolds_final_nomito_filtered_corrected_softmasked.fa
+Gff=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_braker2/braker.gff3
+OutFile=$(dirname $Gff)/$(basename $Gff | sed 's@.gff3@.faa@g')
+agat_sp_extract_sequences.pl -g $Gff -f $Genome -t cds --output $OutFile --clean_final_stop --protein
+
+grep '>' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_braker2/braker.faa | wc -l
+#29,067
+
+source package c1ac247d-c4d1-4747-9817-bf03617f979b
+Dir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask
+kallisto index -i ${Dir}/braker3/transcriptome_index.idx ${Dir}/braker3/braker.codingseq
+kallisto quant -t 8 -i ${Dir}/braker3/transcriptome_index.idx -o ${Dir}/braker3/ /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUF_1.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUF_2.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUM_3.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUM_4.fq.gz
+#Mapping Rate = (Mapped Reads / Total Reads) * 100
+
+kallisto index -i ${Dir}/T_urticae_braker1/transcriptome_index.idx ${Dir}/T_urticae_braker1/augustus.hints.codingseq
+kallisto quant -t 8 -i ${Dir}/T_urticae_braker1/transcriptome_index.idx -o ${Dir}/T_urticae_braker1/ /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUF_1.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUF_2.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUM_3.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUM_4.fq.gz
+
+kallisto index -i ${Dir}/T_urticae_braker2/transcriptome_index.idx ${Dir}/T_urticae_braker2/augustus.hints.codingseq
+kallisto quant -t 8 -i ${Dir}/T_urticae_braker2/transcriptome_index.idx -o ${Dir}/T_urticae_braker2/ /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUF_1.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUF_2.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUM_3.fq.gz /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_urticae/RNASeq/T_urticae_TUM_4.fq.gz
+#59554876,59609883
+
+cat ${Dir}/T_urticae_braker1/run_info.json
+cat ${Dir}/T_urticae_braker2/run_info.json
+cat ${Dir}/braker3/run_info.json
+
+#Braker1: 42.9% pseudoaligned
+#Braker2: 42.0% pseudoaligned
+#Braker3: 37.8% pseudoaligned
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker1/braker.faa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_anthrisci_braker1/braker.faa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/T_urticae_braker1/braker.faa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera.fa > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera+braker1.fa
+
+
 ```
 #### Helixer
 ```bash

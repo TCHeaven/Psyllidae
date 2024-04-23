@@ -1854,8 +1854,12 @@ MCScanX /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/a
 
 
 To detect putative prophages, we used a combination of VirSorter2 (v2.2.2; Guo et al., 2021, p. 2), CheckV (v.0.7.0 (Nayfach et al., 2021)) and VIBRANT (v1.2.1; Kieft, Zhou & Anantharaman, 2020). First, all genomes were analyzed with VirSorter2 (settings –include-groups “dsDNAphage,ssDNA,NCLDV,laviviridae”). Resulting viral regions were retained if they scored at least 0.5 for double stranded DNA phage (dsDNA phage, n = 539). Host genome regions flanking these viral sequences were then trimmed with the CheckV ’contamination’ command. To exclude highly degraded phages, trimmed sequences were retained only if they were at least 5 kb in length (n = 462). Of these resulting sequences, a region was considered a putative prophage if it scored at least 0.9 with VirSorter2 (n = 357). Additionally, those with VirSorter scores of 0.5–0.9 were further analyzed with VIBRANT and were retained as putative prophage if VIBRANT also classified these sequences as virus (n = 74). This resulted in a final set of 431 putative prophages.
-
+#### Virsorter1
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter1
+```
 #### VirSorter2
+https://www.protocols.io/view/viral-sequence-identification-sop-with-virsorter2-5qpvoyqebg4o/v3?step=1
 ```bash
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta); do
 OutDir=$(dirname $Genome)/virsorter2
@@ -1863,13 +1867,61 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_virsorter2.sh $Genome $OutDir
 done
-#59385582
+#59385582, 59426292, 59426508
+
+source package 7a6ee408-8bf5-4cb5-9853-16d5ad415e8f
+virsorter run --keep-original-seq -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta -w /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter2-2 --include-groups dsDNAphage,ssDNA,NCLDV,laviviridae --min-length 5000 --min-score 0.5 -j 1 all
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter2-4
+virsorter run --keep-original-seq -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta -w /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter2-4 --include-groups dsDNAphage,ssDNA,NCLDV,laviviridae --min-length 5000 --min-score 0.5 -j 1 all --db-dir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/virsorter/db
+
+[2024-04-04 04:04 CRITICAL] --db-dir must be provided since "template-config.yaml" has not been initialized
+
+
+source package 1413a4f0-44e3-4b9d-b6c6-0f5c0048df88
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter2-3
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/virsorter2.2.4.sif virsorter run --keep-original-seq -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta -w /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter2-3 --include-groups dsDNAphage,ssDNA,NCLDV,laviviridae --min-length 5000 --min-score 0.5 -j 1 all --db-dir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/virsorter/db
+
+mkdir /home/theaven/scratch/uncompressed/hogenhoutvirsorter2-3
+singularity exec /home/theaven/scratch/apps/virsorter/virsorter_2.2.4--pyhdfd78af_0 virsorter run --keep-original-seq -i /home/theaven/scratch/uncompressed/hogenhout/assembly_v2.fasta -w /home/theaven/scratch/uncompressed/hogenhoutvirsorter2-3 --include-groups dsDNAphage,ssDNA,NCLDV,laviviridae --min-length 5000 --min-score 0.5 -j 1 all
+
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter2-5
+virsorter run --keep-original-seq -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta -w /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/virsorter2-5 --include-groups dsDNAphage,ssDNA,NCLDV --min-length 5000 --min-score 0.5 -j 1 all --high-confidence-only 
+
+```
+```bash
+conda activate viral-id-sop
 ```
 #### Checkv
 ```bash
 source package 583ccd01-1b80-4f0b-9027-b4abdd958a9d
 ```
-#### VIBRANT
+#### VIBRANT + seperately
 ```bash
 source package 98bd0520-6518-47be-92c1-20cf52f558e5
+```
+#### Prophage hunter
+
+#### PhageBoost
+```bash
+source package 6ea65583-8b83-4561-8709-6ec8df0a0cb3
+PhageBoost -f /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/phageboost
+
+#processing: assembly_v2
+#time after genecalls: 6.56554388999939
+#time after feature calculations: 13.704559803009033
+#time after predictions: 15.467231512069702
+#{'phage34': 101, 'phage21': 76, 'phage0': 27, 'phage11': 26, 'phage36': 25, 'phage23': 25, 'phage31': 24, 'phage35': 23}
+
+PhageBoost -f /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/temp_scaffold_18.fasta -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/phageboost2
+#processing: temp_scaffold_18
+#time after genecalls: 1.440387487411499
+#time after feature calculations: 8.455031633377075
+#time after predictions: 9.60255742073059
+#{'phage21': 107, 'phage14': 35, 'phage30': 28, 'phage4': 26, 'phage25': 22, 'phage23': 17, 'phage19': 17, 'phage18': 13}
+
+```
+#### Depht
+```bash
+conda activate depht
 ```
