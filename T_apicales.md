@@ -12,6 +12,7 @@ ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2
 #HiC reads:
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R1.fastq-002.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_HiC_Nov_2022/Trioza_apicales/apicales-286172_S3HiC_R2.fastq-001.gz raw_data/T_apicales/HiC/apicales_286172-S3HiC_R2.fastq.gz
+for file in raw_data/T_apicales/HiC/apicales_286172-S3HiC*.fastq.gz; do echo -n "$file: "; zcat "$file" | wc -l | awk '{print $1/4}'; done
 
 #Tellseq reads,  from 3rd tellseq run:
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_I1_T505.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T505_I1.fastq.gz
@@ -21,6 +22,9 @@ ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_I1_T507.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T507_I1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_R1_T507.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/genomic/Tellseq_T_anthrisci_T_apicales_May_2022/220505_NB501793_0306_AHHMK5BGXK/Caliber_tellseq_run3_T_anthrisci_T_apicales_R2_T507.fastq.gz.corrected.fastq.err_barcode_removed.fastq.gz raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
+
+for file in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger/Trapi_T505_barcoded.fastq.gz; do echo -n "$file: "; zcat "$file" | wc -l | awk '{print $1/4}'; done
+for file in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/TellSeq/longranger/Trapi_T507_barcoded.fastq.gz; do echo -n "$file: "; zcat "$file" | wc -l | awk '{print $1/4}'; done
 
 #RNA
 ln -s /jic/research-groups/Saskia-Hogenhout/reads/RNASeq/Trioza_psyllids_2022/RNAseqMay2022/X204SC22051079-Z01-F001/raw_data/Pf/Pf_1.fq.gz raw_data/T_apicales/RNASeq/T_apicales_Pf_1.fq.gz
@@ -2619,7 +2623,7 @@ OutDir=$(dirname $Assembly)/bwa
 Outfile=$(basename $Assembly | sed 's@.fa@@g')_Tellseq_trimmed
 mkdir $OutDir
 sbatch $ProgDir/bwa-mem_unpaired.sh $OutDir $Outfile $Assembly $T1 $T2
-#58511031
+#58511031, 60032850
 
 #Blast
 OutPrefix=$(basename $Assembly | sed 's@.fa@@g')
@@ -2660,7 +2664,7 @@ conda activate btk
 #From \\wsl.localhost\Ubuntu\home\did23faz
 apptainer exec blobtoolkit.sif blobtools host BlobDirs
 ```
-Kraken and blobtools were used to screen the assembly for contaminants resulting in the removal of 72 scaffolds. All scaffolds without kraken classification to an non-arthropoda taxa outside of the range 0.3 - 0.4 GC, 40 - 110x coverage were removed (43), within this range scaffolds without classification to arthropoda taxa were kept if there classification was more general (eg. eukaryota), unclassified, or to a taxa it is implausible the sample to be contaminatied with (eg. tuna) (14 removed). Additionally, 15 scaffolds scaffolds were removed that were classified to arthropoda taxa by kraken, but which were identified by either tiara or blast as potential contaminants and fell outside of the 0.3 - 0.4 GC, 40 - 110x coverage range.
+Kraken and blobtools were used to screen the assembly for contaminants resulting in the removal of 72 scaffolds. All scaffolds without kraken classification to an arthropoda taxa outside of the range 0.3 - 0.4 GC, 40 - 110x coverage were removed (43), within this range scaffolds without classification to arthropoda taxa were kept if there classification was more general (eg. eukaryota), unclassified, or to a taxa it is implausible the sample to be contaminatied with (eg. tuna) (14 removed). Additionally, 15 scaffolds scaffolds were removed that were classified to arthropoda taxa by kraken, but which were identified by either tiara or blast as potential contaminants and fell outside of the 0.3 - 0.4 GC, 40 - 110x coverage range.
 
 temp-cont4.txt
 
@@ -2784,7 +2788,7 @@ extract_sequence_to_file(fasta_file, start_pos, end_pos, output_file)
 nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/extracted_sequence.fasta ../Symbionts/Candidatus/Carsonella/ruddii/GCA_002009355.1/GCA_002009355.1_ASM200935v1_genomic.fna -p extracted_sequence
 mummerplot -color extracted_sequence.delta
 
-singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_get.py --id_file /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/carsonella_names.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/Trapi.curated_primary.no_mt.unscrubbed.fa --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/carsonella/carsonella_contigs.fa
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/extracted_sequence.fasta /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/carsonella/carsonella_contigs.fa
 
 cat extracted_sequence.fasta >> /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/carsonella/carsonella_contigs.fa
 
@@ -2958,7 +2962,7 @@ The filtered assembly was assessed and polished with inspector:
 ```bash
 Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered.fa
 OutFile=$(basename $Genome | sed 's@.fa@@g')
-OutDir=$(dirname $Genome)
+OutDir=$(dirname $Genome)/test
 Datatype=hifi
 Correct_Datatype=pacbio-hifi
 Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
@@ -2966,7 +2970,10 @@ Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2
 ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/run_inspector.sh $OutFile $OutDir $Genome $Datatype $Correct_Datatype $Read1 $Read2
-#58539171, 59062467 (repeat with carsonella removed)
+#58539171, 59062467 (repeat with carsonella removed), 1079915, 1081928
+
+seqtk seq -A /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered.fa | awk '/^>/ {if (seq) print length(seq), id; id=$0; seq=""} {seq=seq$0} END {print length(seq), id}' | sort -n | awk '{print $2, $1}'
+
 ```
 Statics of contigs:
 Number of contigs       559
@@ -3148,6 +3155,31 @@ mkdir $OutDir
 sbatch $ProgDir/run_earlgrey.sh $Genome $OutFile $OutDir $RMsearch
 #59088751 (output missing, checkpointed but cannot complete properly), 59093551 rerun in new directory
 ```
+```bash
+pwd #/home/theaven/scratch/uncompressed/hogenhout
+
+conda activate earlgrey
+for Genome in $(ls /home/theaven/scratch/uncompressed/hogenhout/psyllid-fin/*.fa); do
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+OutDir=$(dirname $Genome)/earlgrey
+RMsearch=arthropoda
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch ../../apps/earlgrey/run_earlgrey.sh $Genome $OutFile $OutDir $RMsearch
+done
+#22751278-80
+
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/download20082024/*.fa); do
+OutFile=$(basename $Genome | sed 's@.fa@@g')
+OutDir=$(dirname $Genome)/earlgrey
+RMsearch=arthropoda
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_earlgrey.sh $Genome $OutFile $OutDir $RMsearch
+done
+#3215923-5
+```
 ### RNASeq 
 #### Trimmomatic
 ```bash
@@ -3180,7 +3212,7 @@ for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
     mkdir -p $OutDir
     sbatch $ProgDir/run_trim_galore.sh $OutDir $OutFile $Quality $Length $Fread $Rread $Fread2 $Rread2 $Fread3 $Rread3 $Fread4 $Rread4 $Fread5 $Rread5
 done 
-#58575543
+#58575543,59797428
 
 for QCdata in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/RNASeq/trim_galore/T_apicales_*.fq.gz); do
 OutDir=$(dirname $QCdata)/fastqc
@@ -3221,6 +3253,94 @@ done
         23998644 (23.89%) aligned exactly 1 time
         1879594 (1.87%) aligned >1 times
 71.95% overall alignment rate
+
+```bash
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/RNASeq/trim_galore/); do
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    InGenome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/carsonella/Carsonella_1.fasta
+    OutDir=$(dirname $InGenome)/hisat2
+    OutFile=$(basename $InGenome | sed 's@.fasta@@g')
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir $OutDir
+    sbatch $ProgDir/run_HiSat2.sh $InGenome $Fread $Rread $OutDir $OutFile
+done
+#59824443
+
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/RNASeq/trim_galore/); do
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    InGenome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_suspected_contaminants.fa
+    OutDir=$(dirname $InGenome)/hisat2
+    OutFile=$(basename $InGenome | sed 's@.fa@@g')
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir $OutDir
+    sbatch $ProgDir/run_HiSat2.sh $InGenome $Fread $Rread $OutDir $OutFile
+done
+#59824446
+
+for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/dna_qc/T_apicales/RNASeq/trim_galore/); do
+    Fread=$(ls ${ReadDir}*_1.fq.gz)
+    Rread=$(ls ${ReadDir}*_2.fq.gz)
+    InGenome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v1.fa
+    OutDir=$(dirname $InGenome)/hisat2
+    OutFile=$(basename $InGenome | sed 's@.fa@@g')
+    ProgDir=~/git_repos/Wrappers/NBI
+    mkdir $OutDir
+    sbatch $ProgDir/run_HiSat2.sh $InGenome $Fread $Rread $OutDir $OutFile
+done
+#58797870
+```
+***Carsonella***
+132952361 reads; of these:
+  132952361 (100.00%) were paired; of these:
+    132824740 (99.90%) aligned concordantly 0 times
+    127606 (0.10%) aligned concordantly exactly 1 time
+    15 (0.00%) aligned concordantly >1 times
+    ----
+    132824740 pairs aligned concordantly 0 times; of these:
+      128 (0.00%) aligned discordantly 1 time
+    ----
+    132824612 pairs aligned 0 times concordantly or discordantly; of these:
+      265649224 mates make up the pairs; of these:
+        265642973 (100.00%) aligned 0 times
+        6008 (0.00%) aligned exactly 1 time
+        243 (0.00%) aligned >1 times
+0.10% overall alignment rate
+
+***Liberibacter***
+132952361 reads; of these:
+  132952361 (100.00%) were paired; of these:
+    132871496 (99.94%) aligned concordantly 0 times
+    66897 (0.05%) aligned concordantly exactly 1 time
+    13968 (0.01%) aligned concordantly >1 times
+    ----
+    132871496 pairs aligned concordantly 0 times; of these:
+      533 (0.00%) aligned discordantly 1 time
+    ----
+    132870963 pairs aligned 0 times concordantly or discordantly; of these:
+      265741926 mates make up the pairs; of these:
+        265539165 (99.92%) aligned 0 times
+        196407 (0.07%) aligned exactly 1 time
+        6354 (0.00%) aligned >1 times
+0.14% overall alignment rate
+
+***Contaminants***
+132952361 reads; of these:
+  132952361 (100.00%) were paired; of these:
+    132425079 (99.60%) aligned concordantly 0 times
+    487508 (0.37%) aligned concordantly exactly 1 time
+    39774 (0.03%) aligned concordantly >1 times
+    ----
+    132425079 pairs aligned concordantly 0 times; of these:
+      2482 (0.00%) aligned discordantly 1 time
+    ----
+    132422597 pairs aligned 0 times concordantly or discordantly; of these:
+      264845194 mates make up the pairs; of these:
+        264321957 (99.80%) aligned 0 times
+        473631 (0.18%) aligned exactly 1 time
+        49606 (0.02%) aligned >1 times
+0.60% overall alignment rate
 
 #### STAR
 ```bash
@@ -3347,6 +3467,185 @@ mkdir $OutDir
 ProgDir=~/git_repos/Wrappers/NBI
 sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
 #59727994,59729518,59729652
+
+
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/hisat2/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.bam
+Protein_database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera+helixer.fa
+Species=D_apicales_h
+OutDir=$(dirname $Masked_Genome)/braker3+helixer
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#59910583
+
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/hisat2/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.bam
+Protein_database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera+braker1+helixer.fa
+Species=D_apicales_h1
+OutDir=$(dirname $Masked_Genome)/braker3+helixer+1
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#59910585
+
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/hisat2/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.bam
+Protein_database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera+tsebra_abinitio+helixer.fa
+Species=T_apicales_h2
+OutDir=$(dirname $Masked_Genome)/braker3+helixer+tsebra_abinitio
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#59855998
+
+Masked_Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+RNA_alignment=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/hisat2/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.bam
+Protein_database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/orthodb/11/arthropoda/Arthropoda+hemiptera+tsebra_loose+helixer.fa
+Species=T_apicales_h3
+OutDir=$(dirname $Masked_Genome)/braker3+helixer+tsebra_loose
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_braker3.0.7.sh $Masked_Genome $RNA_alignment $Protein_database $Species $OutDir
+#59856004
+```
+#### TSEBRA 
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/tsebra
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/tsebra
+gtf1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker1/augustus.hints.gtf
+gff1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker1/hintsfile.gff
+gtf2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker2/augustus.hints.gtf
+gff2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker2/hintsfile.gff
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.fa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined.gtf
+
+agat_sp_extract_sequences.pl -g braker1+2_combined.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_combined.faa --clean_final_stop --protein
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c ~/git_repos/Scripts/NBI/tsebra_default.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined.gtf
+
+agat_sp_extract_sequences.pl -g braker1+2_combined.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_combined_default.faa --clean_final_stop --protein
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c ~/git_repos/Scripts/NBI/tsebra_braker3.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined.gtf
+
+agat_sp_extract_sequences.pl -g braker1+2_combined.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_combined_braker3.faa --clean_final_stop --protein
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c ~/git_repos/Scripts/NBI/tsebra_pref_braker1.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined.gtf
+
+agat_sp_extract_sequences.pl -g braker1+2_combined.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_combined_pref1.faa --clean_final_stop --protein
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c ~/git_repos/Scripts/NBI/tsebra_keep_ab_initio.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined.gtf
+
+agat_sp_extract_sequences.pl -g braker1+2_combined.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_combined_abinitio.faa --clean_final_stop --protein
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c temp.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined.gtf
+
+agat_sp_extract_sequences.pl -g braker1+2_combined.gtf -f $Genome -t cds --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/tsebra/T_apicales_braker1+2_1-10-5-1_0-1_0.5-2-0.1-0.36.faa --clean_final_stop --protein
+
+nano temp.cfg
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c temp.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined.gtf
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c temp2.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined2.gtf
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/braker3.0.7.sif tsebra.py -g ${gtf1},${gtf2} \
+    -c temp3.cfg \
+    -e ${gff1},${gff2} \
+    -o braker1+2_combined3.gtf
+
+agat_sp_extract_sequences.pl -g braker1+2_combined.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_1-20-5-1_0-1_0-0-0.01-0.01.faa --clean_final_stop --protein
+
+agat_sp_extract_sequences.pl -g braker1+2_combined2.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_1-10-5-1_0.25-2_0.25-0.25-0.05-0.18.faa --clean_final_stop --protein
+
+agat_sp_extract_sequences.pl -g braker1+2_combined3.gtf -f $Genome -t cds --output ${OutDir}/T_apicales_braker1+2_1-10-5-1_0-1_0-0.5-0.01-0.1.faa --clean_final_stop --protein
+
+
+```
+```bash
+for file in $(ls ${OutDir}/*.faa | grep -v 'longest.faa'); do
+Out=$(echo $file | sed 's@.faa@_longest.faa@g')
+if [ ! -e ${Out} ]; then
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py $file $Out
+fi
+done
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker1/braker.faa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker1/T_apicales_braker1_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker2/braker.faa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/T_apicales_braker2/T_apicales_braker2_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3/T_apicales_braker3_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales.faa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/helixer/T_apicales_helixer_longest.faa
+
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py ${OutDir}/T_apicales_braker1+2_combined.faa ${OutDir}/T_apicales_braker1+2_combined_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py ${OutDir}/T_apicales_braker1+2_combined_default.faa ${OutDir}/T_apicales_braker1+2_combined_default_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py ${OutDir}/T_apicales_braker1+2_combined_braker3.faa ${OutDir}/T_apicales_braker1+2_combined_braker3_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py ${OutDir}/T_apicales_braker1+2_combined_pref1.faa ${OutDir}/T_apicales_braker1+2_combined_pref1_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py ${OutDir}/T_apicales_braker1+2_combined_abinitio.faa ${OutDir}/T_apicales_braker1+2_combined_abinitio_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+1/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+1/T_apicales_braker3+1_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py ${OutDir}/T_apicales_braker1+2_1-10-5-1_0-1_0.5-2-0.1-0.36.faa ${OutDir}/T_apicales_braker1+2_1-10-5-1_0-1_0.5-2-0.1-0.36_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/T_apicalis_braker3+helixer+tsebra_loose_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_abinitio/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_abinitio/T_apicalis_braker3+helixer+tsebra_abinitio_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer/T_apicalis_braker3+helixer_longest.faa
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/longest_variant.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+1/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+1/T_apicalis_braker3+helixer+1_longest.faa
+872318
+```
+```bash
+for Proteome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/*/T_apicalis*longest.faa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/*/T_apicales*longest.faa); do
+    ProgDir=~/git_repos/Wrappers/NBI
+    OutDir=$(dirname $Proteome)/BUSCO
+    mkdir $OutDir 
+    Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    while [ $Jobs -gt 5 ]; do
+      sleep 300s
+      printf "."
+      Jobs=$(squeue -u did23faz| grep 'busco'  | wc -l)
+    done
+    Database=/jic/research-groups/Saskia-Hogenhout/BUSCO_sets/v5/hemiptera_odb10
+    OutFile=$(basename $Proteome | sed 's@.faa@@g')_$(echo $Database | cut -d '/' -f7)
+    if [ ! -e ${OutDir}/${OutFile}_short_summary.txt ]; then
+    echo Running BUSCO for: $OutFile
+    sbatch $ProgDir/run_busco-prot.sh $Proteome $Database $OutDir $OutFile 
+    sleep 30s
+    else 
+    echo Already done for: $OutFile
+    fi
+done 
+#59794569,59794582,59794586,59794592,59794728,59795108,59795919,59798082,59798157,59798181
 ```
 
 #### Helixer
@@ -3383,6 +3682,15 @@ ProgDir=~/git_repos/Wrappers/NBI
 mkdir $OutDir
 sbatch $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName 
 #59328912
+
+Proteome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/braker.aa
+OutDir=$(dirname $Proteome)/swissprot
+SwissDbDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/Uniprot/swissprot_2024_March_10
+SwissDbName=uniprot_sprot
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/sub_swissprot.sh $Proteome $OutDir $SwissDbDir $SwissDbName 
+#63243636
 ```
 #### Interproscan
 ```bash
@@ -3400,11 +3708,78 @@ mkdir $OutDir
 sbatch $ProgDir/run_interproscan.sh $InFile $OutDir
 #59328913
 
+/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/braker.aa
+InFile=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/braker.aa
+OutDir=$(dirname $InFile)/interproscan
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_interproscan.sh $InFile $OutDir
+#63243648
+
 cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_anthrisci/hifiasm_19.5/820m/48/1/10.0/0.25/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/tant.aa
 cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_urticae/hifiasm_19.5/715m/12/2/3.0/0.5/filtered/purge_dups/purge_haplotigs/break10x/yahs/filtered/inspector/repeatmasker/softmask/braker3/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/turt.aa
 cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3/braker.aa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/tapi.aa
-```
 
+grep 'GO:' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/interproscan/braker.aa.gff3 > GO_tapi.gff3
+awk '{print $1}' GO_tapi.gff3 | sort | uniq | wc -l #11,059
+```
+#### Circos
+```bash
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/circos
+mkdir $OutDir
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/fasta-to-karyotype.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.fa > $OutDir/karyotype.txt
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/gc_skew_for_circos.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.fa 200000 200000 blue orange > $OutDir/gc_skew.txt
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/gff_to_circos.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/braker.gff3 200000 gene $OutDir/karyotype.txt $OutDir gene
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/gff_to_circos.py /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/download20082024/earlgrey/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked_EarlGrey/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked_summaryFiles/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_softmasked.filteredRepeats.gff 200000 all $OutDir/karyotype.txt $OutDir all_TE
+
+ProgDir=~/git_repos/Wrappers/NBI
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+OutDir=$(dirname $Assembly)/minimap2
+Outfile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2 
+#4177353
+
+source package b0ed0698-358b-4c9b-9d21-603ea8d6e478
+source package c92263ec-95e5-43eb-a527-8f1496d56f1a
+
+samtools sort -o temp.bam $(basename $Assembly | sed 's@.fa@@g').bam && mv temp.bam $(basename $Assembly | sed 's@.fa@@g').bam
+samtools index $OutDir/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.bam 
+samtools depth -a $OutDir/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.bam > ${OutDir}/coverage.txt
+samtools faidx $Assembly
+cut -f1,2 ${Assembly}.fai > ${OutDir}/genome.txt
+bedtools makewindows -g ${Assembly}.fai -w 200000 -s 200000 > $OutDir/genome.windows
+bedtools multicov -bams $OutDir/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.bam -bed $OutDir/genome.windows > $OutDir/genome.cov.histogram
+cp $OutDir/genome.cov.histogram /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/circos/.
+
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/circos
+grep 'SUPER' $OutDir/karyotype.txt > $OutDir/karyotype2.txt
+awk '{if(NR>1) max=($4>max?$4:max)} END {print max}' $OutDir/gc_skew.txt #0.8989
+awk 'NR==1 {next} {if (min=="") min=$4; if ($4<min) min=$4} END {print min}' $OutDir/gc_skew.txt #-0.9422
+awk '{if(NR>1) max=($4>max?$4:max)} END {print max}' $OutDir/gene_count.tsv #56
+awk '{if(NR>1) max=($4>max?$4:max)} END {print max}' $OutDir/all_TE_density.tsv #0.938
+cp /hpc-home/did23faz/git_repos/temp/bands.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ideogram.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ideogram.label.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ideogram.position.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ticks.conf $OutDir/.
+
+cd $OutDir
+circos -conf /hpc-home/did23faz/git_repos/temp/apicalis_circos.conf
+```
+#### HGT
+
+```bash
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/blast
+blastp -query /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/braker.aa -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/nr_08042024/nr -out /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/sanger/MitoHifi/filtered/inspector/repeatmasker/softmask/braker3+helixer+tsebra_loose/blast/HGT_results.out -evalue 1e-10 -outfmt 6 -num_threads 32
+#944000
+```
 
 
 
