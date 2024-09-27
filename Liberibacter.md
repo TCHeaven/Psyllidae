@@ -713,8 +713,8 @@ sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2
 #58754389,6072012,6193942,6514706
 
 ProgDir=~/git_repos/Wrappers/NBI
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/assembly_v2_corrected_fixstart_corrected.fa
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta #31% alignment
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/assembly_v2_corrected_fixstart_corrected.fa #2% alignment...
 OutDir=$(dirname $Assembly)/bwa-2
 Outfile=$(basename $Assembly | sed 's@.fasta@@g')
 Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz

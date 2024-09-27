@@ -284,6 +284,19 @@ cp -r /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/
 
 #main liberibacter files
 ls /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/
+#Specifically:
+#The final version of the liberibacter genome is here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/assembly_v2_corrected_fixstart_corrected.fa
+#The breakdown of genes + whether they are secreted and/ir in phage regions is here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/Orthogroups_phage_sec.tsv
+#----Full orthofinder outputs are here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/orthofinder/
+#Predicted proteins are here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/prokka/CLsoC_JIC0.faa
+#Details of phage regions is here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/phastest/
+#Relatedness of prophage regions across Liberibacter is here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/pyani/
+#Relatedness of this liberibacter to previously sequenced CLso is here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/fastani/
+#Synteny analyses are here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/mcscan/
+#Report on the coverage (HiFi reads) of the genome and mapping quality is here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/qualimap/
+#Circos plots showing the alignment of other CLso C + B genomes to the assembly are here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/
+#Phastest plots of prophage regions are here: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/
+#NOTE: there is a parallel directory structure with all of the above files plus more at  /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/hic/ the difference between these is that the hic/ is the CLso genome scaffold + 2 smaller contigs that went through the process of YAHS scaffolding with HiC reads - I did all of the analyses with this first - however as HiC reads were collected from a different sample they should not contain any info for CLso as this, I assume, was only infecting the one sample HiFi and Tellseq reads were collected from. Upon investigation, whilst they are mostly alike, there are some differences between the pre YAHS and post-YAHS versions of the CLso scaffold. Most notably, the alignment rate of HiFi reads is far higher to the post-YAHS version for some reason - 31% vs 2.5%. I therefore repeated analyses for the pre-YAHS, pre-haplotig-purging, version of the large CLso scaffold. There were also 21 CLso smaller contigs (identified by kraken2, see /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/D_apicalis/T_apicales_880m_29_3_3.0_0.75_kraken2nt_output.txt) at this stage in the D. apicalis assembly that got subsequently removed by purge_dups during the first run through. These appear to have alignment to regions in the largest scaffold. A multifasta with all 22 sequences is at: /jic/research-groups/Saskia-Hogenhout/TCHeaven/Psyllids+CLso/Liberibacter/no-hic/proto_liberibacter.fa
 
 #All liberibacter files
 ls /jic/research-groups/Saskia-Hogenhout/TCHeaven/Liberibacter
