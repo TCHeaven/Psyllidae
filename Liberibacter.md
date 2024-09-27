@@ -189,7 +189,88 @@ nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/P
 mummerplot -color --layout temp.delta
 mummerplot -l -c temp.delta
 ```
+before scaffolding and purging
+```bash
+grep 'Liberibacter' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/kraken2.1.3/T_apicales_880m_29_3_3.0_0.75_kraken2nt_output.txt | awk '{print $2}' > temp_id.txt
+grep 'Liberibacter' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/kraken2.1.3/T_apicales_880m_29_3_3.0_0.75_kraken2nt_output.txt | awk '{print $2 "\t" $9}'
 
+#ptg000098c      1972433
+#ptg003282l      312234
+#ptg003458l      123615
+#ptg003615l      162114
+#ptg003906l      65200
+#ptg004169l      251954
+#ptg004629l      44446
+#ptg005650l      21237
+#ptg006083l      69418
+#ptg006569l      24293
+#ptg006800l      14287
+#ptg007200l      11083
+#ptg007219l      14770
+#ptg007370l      52067
+#ptg007371l      54024
+#ptg007391l      21477
+#ptg007392l      18198
+#ptg007394l      19121
+#ptg007399l      17435
+#ptg007401l      13815
+#ptg007406l      18077
+#ptg007409l      12779
+#ptg007410l      10383
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_get.py --id_file temp_id.txt --input  /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/T_apicales_880m_29_3_3.0_0.75.bp.p_ctg.fa --output  /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa
+
+seqtk seq -A /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa | awk 'BEGIN{n=1;} /^>/{if (f) close(f); f="seq"n".fasta"; n++;} {print > f;}' 
+awk '/^>/ {if (seqlen){print seqlen}; print $0; seqlen=0; next} {seqlen += length($0)} END{print seqlen}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa
+
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta -p proto
+mummerplot -color --layout proto.delta
+mummerplot -l -c proto.delta
+nucmer --maxmatch --nosimplify /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa -p proto2
+mummerplot -color --layout proto2.delta
+mummerplot -l -c proto2.delta
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa
+Read_type=illumina
+OutDir=$(dirname $Assembly)/circlator-proto
+Outfile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz
+Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R2.fastq.gz
+Read3=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
+Read4=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_circlator.sh $Assembly $Read_type $OutDir $Outfile $Read1 $Read2 $Read3 $Read4
+#6454170
+
+--no_pre_merge
+
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa
+Read_type=pacbio-corrected
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/circlator-hifi-proto
+Outfile=$(basename $Assembly | sed 's@.fa@@g')
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_circlator.sh $Assembly $Read_type $OutDir $Outfile $Read1 $Read2
+#6454169
+
+grep 'Liberibacter' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/kraken2.1.3/T_apicales_880m_29_3_3.0_0.75_TellSeqPurged_kraken2nt_output.txt | awk '{print $2 "\t" $9}'
+#ptg000098c      1972433
+```
+```python
+import os
+from Bio import SeqIO
+
+input_file = "/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/hifiasm_19.5.2/proto_liberibacter.fa"
+
+#Iterate through each sequence in the multi-fasta file and write each to a separate file
+input_dir = os.path.dirname(os.path.abspath(input_file))
+for record in SeqIO.parse(input_file, "fasta"):
+    output_file = os.path.join(input_dir, f"{record.id}.fna")
+    with open(output_file, "w") as output_handle:
+        SeqIO.write(record, output_handle, "fasta")
+```
 #### RAxML
 
 A phylogeny was constructed based upon bacterial BUSCO genes, to assess whether the scaffold could represent the larger genome of another Candidatus species related to C.liberibacter solanacearum.
@@ -536,6 +617,7 @@ mummerplot -color asi_self2.delta
 ```
 
 #### FastANI
+fastani v1.33
 ```bash
 #CLso-ZC1
 fastANI -t 16 -r /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCF_000183665.1/GCF_000183665.1_ASM18366v1_genomic.fna -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/CLso-ZC1_ANI.txt
@@ -563,10 +645,27 @@ fastANI -t 1 --visualize -r /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyl
 
 singularity exec --overlay /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/overlays/genoPlotR.sif:ro /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/genomation1.34.0.sif Rscript ~/git_repos/Scripts/NBI/visualize.R /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/assembly_v2.fasta /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCF_000183665.1/GCF_000183665.1_ASM18366v1_genomic.fna /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC/1/data/JIC1/CLso-ZC1_ANI2.out.visual
 ```
+```bash
+#CLso-ZC1
+fastANI -t 16 -r /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCF_000183665.1/GCF_000183665.1_ASM18366v1_genomic.fna -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0//CLso-ZC1_ANI.txt
+#FIN114
+fastANI -t 16 -r /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983675.1/GCA_001983675.1_ASM198367v1_genomic.fna -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0//FIN114_ANI.txt
+#FIN111
+fastANI -t 16 -r /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983655.1/GCA_001983655.1_ASM198365v1_genomic.fna -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0//FIN111_ANI.txt
+
+#CLso-ZC1
+fastANI -t 16 --visualize -r /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCF_000183665.1/GCF_000183665.1_ASM18366v1_genomic.fna -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0//CLso-ZC1_ANI.out
+#FIN114
+fastANI -t 16 --visualize -r /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983675.1/GCA_001983675.1_ASM198367v1_genomic.fna -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0//FIN114_ANI.out 
+#FIN111
+fastANI -t 16 --visualize -r /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983655.1/GCA_001983655.1_ASM198365v1_genomic.fna -q /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0//FIN111_ANI.out 
+```
 
 ## Reassembly
 
 HiC contact map suggests that scaffolds 184 and 1142 are also of C. lineribacter origin, this is supported by kraken for 184.
+
+ERROR: HiC is from a different sample...
 
 ```bash
 awk 'BEGIN{RS=">"} NR>1 {sub("\n","\t",$0); gsub("\n",""); print ">"$1"\n"$2}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/break10x/purge_dups/yahs/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_scaffolds_final.fa | grep -A 1 -w '>scaffold_184' > temp_scaffold_184.fasta
@@ -604,25 +703,27 @@ cat temp_scaffold_18.fasta temp_scaffold_184.fasta temp_scaffold_1142.fasta > Li
 ```bash
 ProgDir=~/git_repos/Wrappers/NBI
 Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta
-OutDir=$(dirname $Assembly)/minimap2
-Outfile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/assembly_v2_corrected_fixstart_corrected.fa
+OutDir=$(dirname $Assembly)/minimap2-2
+Outfile=$(basename $Assembly | sed 's@.fasta@@g')
 Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
 Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
 mkdir $OutDir
 sbatch $ProgDir/run_minimap2-hifi.sh $OutDir $Outfile $Assembly $Read1 $Read2 
-#58754389,6072012,6193942
+#58754389,6072012,6193942,6514706
 
 ProgDir=~/git_repos/Wrappers/NBI
-Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/assembly_v1.fa
-OutDir=$(dirname $Assembly)/bwa
-Outfile=$(basename $Assembly | sed 's@.bp.p_ctg.fa@@g')_HiC
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/assembly_v2_corrected_fixstart_corrected.fa
+OutDir=$(dirname $Assembly)/bwa-2
+Outfile=$(basename $Assembly | sed 's@.fasta@@g')
 Read1=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz
 Read2=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R2.fastq.gz
 Read3=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
 Read4=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
 mkdir $OutDir
 sbatch $ProgDir/bwa-mem.sh $OutDir $Outfile $Assembly $Read1 $Read2 $Read3 $Read4
-#58797861
+#58797861,6449153,6514707
 
 cd /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter
 samtools view -h minimap2/assembly_v1.fa.bam -o minimap2/assembly_v1.fa.sam
@@ -630,11 +731,21 @@ samtools fastq -@32 minimap2/assembly_v1.fa.sam > reads.fastq
 
 seqkit stats /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
 seqkit stats /jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
+
+seqkit stats /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R1.fastq.gz
+seqkit stats /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_R2.fastq.gz
+seqkit stats /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R1.fastq.gz
+seqkit stats /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_R2.fastq.gz
+seqkit stats /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T505_I1.fastq.gz
+seqkit stats /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/raw_data/T_apicales/TellSeq/apicales_T507_I1.fastq.gz
+
 samtools flagstat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/minimap2/assembly_v1.fa.bam
 
 sbatch $ProgDir/run_qualimap.sh /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/minimap2/assembly_v1_corrected_fixstart.fasta.bam /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/minimap2/qualimap NA
 #6193935, 6234026
 
+sbatch $ProgDir/run_qualimap.sh /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/minimap2-2/assembly_v2_corrected_fixstart_corrected.sorted.bam /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/assembly_v2_corrected_fixstart_corrected.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/minimap2-2/qualimap NA
+#6522875
 
 ProgDir=~/git_repos/Wrappers/NBI
 Reads=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/reads.fastq
@@ -729,7 +840,16 @@ show-coords -T $OutFile.delta > $OutFile.coords
 awk '{print $8 "\t" $1 "\t" $2}' $OutFile.coords | sed '1,4d'| tr -s ' ' '\t' > $OutFile.bed
 done
 ```
-
+```bash
+#Reference vs the scaffold
+for Query in $(ls /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983655.1/LVWB01000*.fna /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983675.1/LWEB01000*.fna /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCF_000183665.1/GCF_000183665.1_ASM18366v1_genomic.fna); do
+Reference=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa
+OutFile=$(echo $Query | sed 's@.fna@_final@g')
+nucmer  -p $OutFile $Reference $Query
+show-coords -T $OutFile.delta > $OutFile.coords
+awk '{print $8 "\t" $1 "\t" $2}' $OutFile.coords | sed '1,4d'| tr -s ' ' '\t' > $OutFile.bed
+done
+```
 
 #### bridging reads
 ```bash
@@ -1474,7 +1594,7 @@ rm /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genome
 ```bash
 mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani
 
-for INPUT_DIR in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/*/*/data/*/phastest); do
+for INPUT_DIR in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/*/*/data/*/phastest | grep 'JIC0'); do
 MULTIFASTA_FILE="phage_regions.fna"
 PREFIX=$(echo $INPUT_DIR | cut -d '/' -f10)
 OUTPUT_DIR=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani
@@ -1598,10 +1718,15 @@ ax.yaxis.set_label_position("right")
 ax.yaxis.set_tick_params(labelsize=5)
 
 # Save the figure
-plt.savefig("/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/TETRA_output/TETRA_correlations-mod2.png", dpi=300)
+plt.savefig("/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/TETRA_output/TETRA_correlations-mod2_final.png", dpi=300)
 
-data_reordered.to_csv("/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/TETRA_output/TETRA_correlations_reordered.tab", sep='\t')
+data_reordered.to_csv("/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/TETRA_output/TETRA_correlations_reordered_final.tab", sep='\t')
 
+# Save the figure as SVG
+plt.savefig("/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/TETRA_output/TETRA_correlations-mod2_final.svg", format='svg', dpi=300)
+
+# Save the figure as PDF
+plt.savefig("/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/TETRA_output/TETRA_correlations-mod2_final.pdf", format='pdf', dpi=300)
 ```
 #### Prophage hunter
 ```bash
@@ -4352,4 +4477,792 @@ makeblastdb -in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberi
 blastn -query path_genes_Clso.fasta -db /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/CLso_JIC -out blastn_effectors_Clso.out -evalue 1e-5 -outfmt '6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qseq sseq' -num_threads 1 -max_target_seqs 99
 
 ```
+```bash
+/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta
 
+circlator fixstart --verbose /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart1.fasta /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v2_corrected_fixstart.fasta
+
+awk '/^>/ {if (seqlen){print seqlen}; print $0; seqlen=0; next} {seqlen += length($0)} END{print seqlen}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v2_corrected_fixstart.fasta.fasta #1972433
+awk '/^>/ {if (seqlen){print seqlen}; print $0; seqlen=0; next} {seqlen += length($0)} END{print seqlen}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v1_corrected_fixstart.fasta #1972525
+awk '/^>/ {if (seqlen){print seqlen}; print $0; seqlen=0; next} {seqlen += length($0)} END{print seqlen}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/assembly_v2_corrected_fixstart_corrected.fa #1972435
+#unpurged and YAHSed version is slightly shorter...
+
+Genome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/assembly_v2_corrected_fixstart.fasta.fasta
+OutFile=$(basename $Genome | sed 's@.fasta.fasta@@g')
+OutDir=$(dirname $Genome)/inspector2
+Datatype=hifi
+Correct_Datatype=pacbio-hifi
+Read1=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/TrAp2_hifi_reads.fastq.gz
+Read2=/jic/research-groups/Saskia-Hogenhout/reads/genomic/CALIBER_PB_HIFI_July_2022/third_flow_cell/TrAp2_hifi_3rdSMRTcell.fastq.gz
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_inspector.sh $OutFile $OutDir $Genome $Datatype $Correct_Datatype $Read1 $Read2
+#6461154,6461202
+
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/assembly_v2_corrected_fixstart_corrected.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/.
+
+for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/phastest/phage_regions.fna); do
+OutDir=$(dirname $Genome)/prokka
+ID=$(echo $Genome | cut -d '/' -f10)
+Locustag=$ID
+mkdir $OutDir
+ProgDir=~/git_repos/Wrappers/NBI
+sbatch $ProgDir/run_prokka.sh $Genome $OutDir ${ID} $Locustag
+done
+#6463628
+
+ProjDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
+cd $ProjDir
+IsolateAbrv=All_liberibacters
+WorkDir=analysis/orthology/orthofinder/$IsolateAbrv
+mkdir -p $WorkDir
+mkdir -p $WorkDir/formatted
+mkdir -p $WorkDir/goodProteins
+mkdir -p $WorkDir/badProteins  
+cd $WorkDir/formatted
+
+Id_field=1
+Taxon_code=Af01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLaf_Ang37/ncbi_dataset/data/GCA_017869345.1/prokka/GCA_017869345.1_ASM1786934v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Af02
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLaf_PTSAPSY/ncbi_dataset/data/GCA_001021085.1/prokka/GCA_001021085.1_ASM102108v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Am01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLam_PW_SP/ncbi_dataset/data/GCA_000350385.1/prokka/GCA_000350385.1_Velvet_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Am02
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLam_SaoPaulo/ncbi_dataset/data/GCA_000496595.1/prokka/GCA_000496595.1_ASM49659v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_9PA/ncbi_dataset/data/GCA_013778575.1/prokka/GCA_013778575.1_ASM1377857v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As02
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_A4/ncbi_dataset/data/GCA_000590865.3/prokka/GCA_000590865.3_ASM59086v3_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As03
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_AHCA17/ncbi_dataset/data/GCA_009859045.1/prokka/GCA_009859045.1_ASM985904v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As04
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_AHCA1/ncbi_dataset/data/GCA_003143875.1/prokka/GCA_003143875.1_ASM314387v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As05
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_A-SBCA19/ncbi_dataset/data/GCA_014892655.1/prokka/GCA_014892655.1_ASM1489265v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As06
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_AS-TNSK3/ncbi_dataset/data/GCA_029948395.1/prokka/GCA_029948395.1_ASM2994839v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As07
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_BCSMX/ncbi_dataset/data/GCA_025606285.1/prokka/GCA_025606285.1_ASM2560628v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As08
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_CHUC/ncbi_dataset/data/GCA_009756785.1/prokka/GCA_009756785.1_ASM975678v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As09
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_CoFLP/ncbi_dataset/data/GCA_014107775.1/prokka/GCA_014107775.1_ASM1410777v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As10
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_CRCFL16/ncbi_dataset/data/GCA_009756805.1/prokka/GCA_009756805.1_ASM975680v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As11
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_DUR1TX1/ncbi_dataset/data/GCA_009756745.1/prokka/GCA_009756745.1_ASM975674v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As12
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_DUR2TX1/ncbi_dataset/data/GCA_009756725.1/prokka/GCA_009756725.1_ASM975672v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As13
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_FL17/ncbi_dataset/data/GCA_000820625.1/prokka/GCA_000820625.1_ASM82062v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As14
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_GDCZ/ncbi_dataset/data/GCA_030585885.1/prokka/GCA_030585885.1_ASM3058588v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As15
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_GFR3TX3/ncbi_dataset/data/GCA_009756735.1/prokka/GCA_009756735.1_ASM975673v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As16
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_gxpsy/ncbi_dataset/data/GCA_000346595.1/prokka/GCA_000346595.1_ASM34659v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As17
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_HHCA16/ncbi_dataset/data/GCA_009756845.1/prokka/GCA_009756845.1_ASM975684v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As18
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_HHCA/ncbi_dataset/data/GCA_000724755.2/prokka/GCA_000724755.2_HHCA-assembly_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As19
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_Ishi-1/ncbi_dataset/data/GCA_000829355.1/prokka/GCA_000829355.1_ASM82935v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As20
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_JRPAMB1/ncbi_dataset/data/GCA_013462975.1/prokka/GCA_013462975.1_ASM1346297v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As21
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_JXGC/ncbi_dataset/data/GCA_002216815.1/prokka/GCA_002216815.1_ASM221681v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As22
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_JXGZ-1/ncbi_dataset/data/GCA_009764765.1/prokka/GCA_009764765.1_ASM976476v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As23
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_LBR19TX2/ncbi_dataset/data/GCA_009756885.1/prokka/GCA_009756885.1_ASM975688v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As24
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_LBR23TX5/ncbi_dataset/data/GCA_009756915.1/prokka/GCA_009756915.1_ASM975691v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As25
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_MAG1/ncbi_dataset/data/GCA_025938115.1/prokka/GCA_025938115.1_ASM2593811v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As26
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_Mex8/ncbi_dataset/data/GCA_009756755.1/prokka/GCA_009756755.1_ASM975675v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As27
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_MFL16/ncbi_dataset/data/GCA_009756815.1/prokka/GCA_009756815.1_ASM975681v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As28
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PA19/ncbi_dataset/data/GCA_013309695.2/prokka/GCA_013309695.2_ASM1330969v2_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As29
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PA20/ncbi_dataset/data/GCA_016758155.2/prokka/GCA_016758155.2_ASM1675815v2_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As30
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PGD/ncbi_dataset/data/GCA_028473705.1/prokka/GCA_028473705.1_ASM2847370v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As31
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_psy62/ncbi_dataset/data/GCA_000023765.2/prokka/GCA_000023765.2_ASM2376v2_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As32
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PYN/ncbi_dataset/data/GCA_028473725.1/prokka/GCA_028473725.1_ASM2847372v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As33
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_ReuSP1/ncbi_dataset/data/GCA_022220845.1/prokka/GCA_022220845.1_ASM2222084v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As34
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGCA16/ncbi_dataset/data/GCA_009756855.1/prokka/GCA_009756855.1_ASM975685v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As35
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGCA1/ncbi_dataset/data/GCA_003149415.1/prokka/GCA_003149415.1_ASM314941v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As36
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGCA5/ncbi_dataset/data/GCA_001430705.1/prokka/GCA_001430705.1_ASM143070v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As37
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGpsy/ncbi_dataset/data/GCA_003336865.1/prokka/GCA_003336865.1_ASM333686v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As38
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_Tabriz3/ncbi_dataset/data/GCA_022343665.1/prokka/GCA_022343665.1_ASM2234366v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As39
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_TaiYZ2/ncbi_dataset/data/GCA_014217975.1/prokka/GCA_014217975.1_ASM1421797v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As40
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_TX1712/ncbi_dataset/data/GCA_003160765.1/prokka/GCA_003160765.1_ASM316076v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As41
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_TX2351/ncbi_dataset/data/GCA_001969535.1/prokka/GCA_001969535.1_ASM196953v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As42
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YCPsy/ncbi_dataset/data/GCA_001296945.1/prokka/GCA_001296945.1_ASM129694v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As43
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YNHK-2/ncbi_dataset/data/GCA_018282155.1/prokka/GCA_018282155.1_ASM1828215v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As44
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YNJS7C/ncbi_dataset/data/GCA_003615235.1/prokka/GCA_003615235.1_ASM361523v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As45
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YNXP-1/ncbi_dataset/data/GCA_009764755.1/prokka/GCA_009764755.1_ASM976475v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As46
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YTMX/ncbi_dataset/data/GCA_025606305.1/prokka/GCA_025606305.1_ASM2560630v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Br01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLbr_Asol15/ncbi_dataset/data/GCA_036858155.1/prokka/GCA_036858155.1_ASM3685815v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Cr01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLcr_BT-0/ncbi_dataset/data/GCA_001543305.1/prokka/GCA_001543305.1_ASM154330v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Cr02
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLcr_BT-1/ncbi_dataset/data/GCA_000325745.1/prokka/GCA_000325745.1_ASM32574v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Ct01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLct_Oxford/ncbi_dataset/data/GCA_016808295.1/prokka/GCA_016808295.1_ASM1680829v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Eu01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLeu_ASNZ1/ncbi_dataset/data/GCA_003045065.1/prokka/GCA_003045065.1_ASM304506v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Eu02
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLeu_ASUK1/ncbi_dataset/data/GCA_019843875.1/prokka/GCA_019843875.1_ASM1984387v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So01
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_JNVH01/ncbi_dataset/data/GCA_000756225.1/prokka/GCA_000756225.1_ASM75622v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So02
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_NZ1/ncbi_dataset/data/GCA_000968085.1/prokka/GCA_000968085.1_ASM96808v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So03
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_RSTM/ncbi_dataset/data/GCA_001414235.1/prokka/GCA_001414235.1_ASM141423v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So04
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_HenneA/ncbi_dataset/data/GCA_000968075.1/prokka/GCA_000968075.1_ASM96807v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So05
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_ZC1/ncbi_dataset/data/GCA_000183665.1/prokka/GCA_000183665.1_ASM18366v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So06
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN111/ncbi_dataset/data/GCA_001983655.1/prokka/GCA_001983655.1_ASM198365v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So07
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN114/ncbi_dataset/data/GCA_001983675.1/prokka/GCA_001983675.1_ASM198367v1_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So08
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/CLsoC_JIC0.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So09
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoD_ISR100/ncbi_dataset/data/GCA_002918245.2/prokka/GCA_002918245.2_ASM291824v2_genomic_fixstart.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+
+Id_field=1
+Taxon_code=Af01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLaf_Ang37/ncbi_dataset/data/GCA_017869345.1/phastest/prokka/CLaf_Ang37_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Af02phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLaf_PTSAPSY/ncbi_dataset/data/GCA_001021085.1/phastest/prokka/CLaf_PTSAPSY_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Am01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLam_PW_SP/ncbi_dataset/data/GCA_000350385.1/phastest/prokka/CLam_PW_SP_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Am02phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLam_SaoPaulo/ncbi_dataset/data/GCA_000496595.1/phastest/prokka/CLam_SaoPaulo_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_9PA/ncbi_dataset/data/GCA_013778575.1/phastest/prokka/CLas_9PA_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As02phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_A4/ncbi_dataset/data/GCA_000590865.3/phastest/prokka/CLas_A4_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As03phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_AHCA17/ncbi_dataset/data/GCA_009859045.1/phastest/prokka/CLas_AHCA17_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As04phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_AHCA1/ncbi_dataset/data/GCA_003143875.1/phastest/prokka/CLas_AHCA1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As05phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_A-SBCA19/ncbi_dataset/data/GCA_014892655.1/phastest/prokka/CLas_A-SBCA19_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As06phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_AS-TNSK3/ncbi_dataset/data/GCA_029948395.1/phastest/prokka/CLas_AS-TNSK3_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As07phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_BCSMX/ncbi_dataset/data/GCA_025606285.1/phastest/prokka/CLas_BCSMX_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As08phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_CHUC/ncbi_dataset/data/GCA_009756785.1/phastest/prokka/CLas_CHUC_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As09phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_CoFLP/ncbi_dataset/data/GCA_014107775.1/phastest/prokka/CLas_CoFLP_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As10phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_CRCFL16/ncbi_dataset/data/GCA_009756805.1/phastest/prokka/CLas_CRCFL16_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As11phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_DUR1TX1/ncbi_dataset/data/GCA_009756745.1/phastest/prokka/CLas_DUR1TX1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As12phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_DUR2TX1/ncbi_dataset/data/GCA_009756725.1/phastest/prokka/CLas_DUR2TX1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As13phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_FL17/ncbi_dataset/data/GCA_000820625.1/phastest/prokka/CLas_FL17_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As14phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_GDCZ/ncbi_dataset/data/GCA_030585885.1/phastest/prokka/CLas_GDCZ_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As15phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_GFR3TX3/ncbi_dataset/data/GCA_009756735.1/phastest/prokka/CLas_GFR3TX3_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As16phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_gxpsy/ncbi_dataset/data/GCA_000346595.1/phastest/prokka/CLas_gxpsy_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As17phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_HHCA16/ncbi_dataset/data/GCA_009756845.1/phastest/prokka/CLas_HHCA16_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As18phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_HHCA/ncbi_dataset/data/GCA_000724755.2/phastest/prokka/CLas_HHCA_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As19phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_Ishi-1/ncbi_dataset/data/GCA_000829355.1/phastest/prokka/CLas_Ishi-1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As20phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_JRPAMB1/ncbi_dataset/data/GCA_013462975.1/phastest/prokka/CLas_JRPAMB1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As21phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_JXGC/ncbi_dataset/data/GCA_002216815.1/phastest/prokka/CLas_JXGC_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As22phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_JXGZ-1/ncbi_dataset/data/GCA_009764765.1/phastest/prokka/CLas_JXGZ-1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As23phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_LBR19TX2/ncbi_dataset/data/GCA_009756885.1/phastest/prokka/CLas_LBR19TX2_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As24phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_LBR23TX5/ncbi_dataset/data/GCA_009756915.1/phastest/prokka/CLas_LBR23TX5_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As25phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_MAG1/ncbi_dataset/data/GCA_025938115.1/phastest/prokka/CLas_MAG1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As26phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_Mex8/ncbi_dataset/data/GCA_009756755.1/phastest/prokka/CLas_Mex8_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As27phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_MFL16/ncbi_dataset/data/GCA_009756815.1/phastest/prokka/CLas_MFL16_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As28phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PA19/ncbi_dataset/data/GCA_013309695.2/phastest/prokka/CLas_PA19_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As29phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PA20/ncbi_dataset/data/GCA_016758155.2/phastest/prokka/CLas_PA20_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As30phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PGD/ncbi_dataset/data/GCA_028473705.1/phastest/prokka/CLas_PGD_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As31phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_psy62/ncbi_dataset/data/GCA_000023765.2/phastest/prokka/CLas_psy62_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As32phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_PYN/ncbi_dataset/data/GCA_028473725.1/phastest/prokka/CLas_PYN_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As33phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_ReuSP1/ncbi_dataset/data/GCA_022220845.1/phastest/prokka/CLas_ReuSP1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As34phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGCA16/ncbi_dataset/data/GCA_009756855.1/phastest/prokka/CLas_SGCA16_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As35phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGCA1/ncbi_dataset/data/GCA_003149415.1/phastest/prokka/CLas_SGCA1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As36phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGCA5/ncbi_dataset/data/GCA_001430705.1/phastest/prokka/CLas_SGCA5_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As37phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_SGpsy/ncbi_dataset/data/GCA_003336865.1/phastest/prokka/CLas_SGpsy_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As38phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_Tabriz3/ncbi_dataset/data/GCA_022343665.1/phastest/prokka/CLas_Tabriz3_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As39phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_TaiYZ2/ncbi_dataset/data/GCA_014217975.1/phastest/prokka/CLas_TaiYZ2_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As40phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_TX1712/ncbi_dataset/data/GCA_003160765.1/phastest/prokka/CLas_TX1712_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As41phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_TX2351/ncbi_dataset/data/GCA_001969535.1/phastest/prokka/CLas_TX2351_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As42phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YCPsy/ncbi_dataset/data/GCA_001296945.1/phastest/prokka/CLas_YCPsy_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As43phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YNHK-2/ncbi_dataset/data/GCA_018282155.1/phastest/prokka/CLas_YNHK-2_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As44phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YNJS7C/ncbi_dataset/data/GCA_003615235.1/phastest/prokka/CLas_YNJS7C_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As45phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YNXP-1/ncbi_dataset/data/GCA_009764755.1/phastest/prokka/CLas_YNXP-1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=As46phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLas_YTMX/ncbi_dataset/data/GCA_025606305.1/phastest/prokka/CLas_YTMX_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Br01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLbr_Asol15/ncbi_dataset/data/GCA_036858155.1/phastest/prokka/CLbr_Asol15_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Cr01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLcr_BT-0/ncbi_dataset/data/GCA_001543305.1/phastest/prokka/CLcr_BT-0_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Cr02phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLcr_BT-1/ncbi_dataset/data/GCA_000325745.1/phastest/prokka/CLcr_BT-1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Ct01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLct_Oxford/ncbi_dataset/data/GCA_016808295.1/phastest/prokka/CLct_Oxford_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Eu01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLeu_ASNZ1/ncbi_dataset/data/GCA_003045065.1/phastest/prokka/CLeu_ASNZ1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=Eu02phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLeu_ASUK1/ncbi_dataset/data/GCA_019843875.1/phastest/prokka/CLeu_ASUK1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So01phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_JNVH01/ncbi_dataset/data/GCA_000756225.1/phastest/prokka/CLsoA_JNVH01_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So02phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_NZ1/ncbi_dataset/data/GCA_000968085.1/phastest/prokka/CLsoA_NZ1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So03phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoA_RSTM/ncbi_dataset/data/GCA_001414235.1/phastest/prokka/CLsoA_RSTM_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So04phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_HenneA/ncbi_dataset/data/GCA_000968075.1/phastest/prokka/CLsoB_HenneA_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So05phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoB_ZC1/ncbi_dataset/data/GCA_000183665.1/phastest/prokka/CLsoB_ZC1_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So06phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN111/ncbi_dataset/data/GCA_001983655.1/phastest/prokka/CLsoC_FIN111_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So07phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_FIN114/ncbi_dataset/data/GCA_001983675.1/phastest/prokka/CLsoC_FIN114_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So08phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/phastest/prokka/CLsoC_JIC0.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+Id_field=1
+Taxon_code=So09phage
+Fasta_file=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoD_ISR100/ncbi_dataset/data/GCA_002918245.2/phastest/prokka/CLsoD_ISR100_phage_regions.faa
+~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+cd $ProjDir
+
+for WorkDir in $(ls -d analysis/orthology/orthofinder/All_liberibacter_phages); do
+Input_dir=$WorkDir/formatted
+Min_length=10
+Max_percent_stops=20
+Good_proteins_file=$WorkDir/goodProteins/goodProteins.fasta
+Poor_proteins_file=$WorkDir/badProteins/poorProteins.fasta
+~/git_repos/Scripts/NBI/orthomclFilterFasta.pl $Input_dir $Min_length $Max_percent_stops $Good_proteins_file $Poor_proteins_file
+done
+
+Prefix=liberibacter_phagesx
+OutDir=orthofinder52000x
+sbatch ~/git_repos/Wrappers/NBI/run_orthofinder.sh $Input_dir $Prefix $OutDir
+#6464220
+
+cd $ProjDir
+for WorkDir in $(ls -d analysis/orthology/orthofinder/All_liberibacters); do
+Input_dir=$WorkDir/formatted
+Min_length=10
+Max_percent_stops=20
+Good_proteins_file=$WorkDir/goodProteins/goodProteins.fasta
+Poor_proteins_file=$WorkDir/badProteins/poorProteins.fasta
+~/git_repos/Scripts/NBI/orthomclFilterFasta.pl $Input_dir $Min_length $Max_percent_stops $Good_proteins_file $Poor_proteins_file
+done
+
+Prefix=liberibactersx
+OutDir=orthofinder52000x
+sbatch ~/git_repos/Wrappers/NBI/run_orthofinder.sh $Input_dir $Prefix $OutDir
+#6510706
+```
+```bash
+wc -l /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacter_phages/formatted/orthofinder52000x/Results_liberibacter_phagesx/Orthogroups/Orthogroups.tsv #2,093
+grep 'So08' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacter_phages/formatted/orthofinder52000x/Results_liberibacter_phagesx/Orthogroups/Orthogroups.tsv | wc -l #1,112
+grep 'So08phage' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacter_phages/formatted/orthofinder52000x/Results_liberibacter_phagesx/Orthogroups/Orthogroups.tsv | wc -l #264
+```
+```bash
+wc -l /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups.tsv #2,113
+grep 'So08' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups.tsv | wc -l #1,091
+
+for file in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/*/*/data/*/phastest/predicted_phage_regions.json); do
+cd $(dirname $file)
+fasta=$(ls $(echo $file | cut -d '/' -f1,2,3,4,5,6,7,8,9,10,11,12,13)/*.fasta)
+gff=$(ls $(echo $file | cut -d '/' -f1,2,3,4,5,6,7,8,9,10,11,12,13)/prokka/*.gff)
+faa=$(ls $(echo $file | cut -d '/' -f1,2,3,4,5,6,7,8,9,10,11,12,13)/prokka/*.faa)
+ID=$(echo $file | cut -d '/' -f10)
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/extract_phage_genes.py $file $fasta $gff $faa $ID
+done
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/*/*/data/*/phastest/*_phage_genes.txt | grep -v 'CLsoC_JIC_' > phage_genes.txt
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups.tsv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage.tsv
+while IFS= read -r gene; do
+  echo $gene
+    sed "s@|${gene}@(phage)|${gene}@g" /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage.tsv > temp.tsv && mv temp.tsv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage.tsv
+done < "phage_genes.txt"
+
+grep '(phage)' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage.tsv | wc -l #403
+grep 'So08(phage)' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage.tsv | wc -l #231
+```
+Signalp3
+```bash
+grep '>' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/CLsoC_JIC0.faa | wc -l #1,974
+nano /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/phastest/prokka/signalp3.txt 
+```
+```bash
+21
+awk -F' ' '$20 ~ /^[0-9.]+$/ && $20 > 0.5 {print $1}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/phastest/prokka/signalp3.txt > secreted_genes.txt
+cp /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage.tsv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage_sec.tsv
+while IFS= read -r gene; do
+  echo $gene
+    sed "s@|${gene}@(secreted)|${gene}@g" /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage_sec.tsv > temp.tsv && mv temp.tsv /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage_sec.tsv
+done < "secreted_genes.txt"
+
+grep '(secreted)' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage_sec.tsv | wc -l #103
+grep '(phage)(secreted)' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage_sec.tsv | wc -l #24
+
+grep -Ff secreted_genes.txt phage_genes.txt > secreted_phage_genes.txt
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_get.py --id_file secreted_phage_genes.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/CLsoC_JIC0.faa --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/secreted_phage.faa
+
+proteome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/secreted_phage.faa
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/uniprot_01102023/Uniprot_01102023_reference_proteomes.dmnd
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/diamond
+OutFile=$(basename $proteome | sed 's@.faa@@g')
+hits=10
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_diamond_blastp.sh $proteome $Database $OutDir $OutFile $hits
+#6517465
+```
+Unique orthogroups/singletons containing secreted phage genes:
+```bash
+grep -Ff secreted_phage_genes.txt /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_UnassignedGenes.tsv
+#CLsoC_JIC0_00094
+#CLsoC_JIC0_01492
+
+awk -F'\t' '{if ($1 != "" && $65 != "") {empty = 1; for (i = 2; i <= 64; i++) {if ($i != "") {empty = 0; break;}} if (empty) {print $0;}}}' /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthology/orthofinder/All_liberibacters/formatted/orthofinder52000x/Results_liberibactersx/Orthogroups/Orthogroups_phage_sec.tsv | grep -v 'So09' | grep '(phage)(secreted)' | awk -F'\t' '{print $65}'
+#So08(phage)(secreted)|CLsoC_JIC0_00120, So08|CLsoC_JIC0_00241, So08(phage)|CLsoC_JIC0_00359, So08(phage)(secreted)|CLsoC_JIC0_00492, So08(phage)(secreted)|CLsoC_JIC0_00589, So08(phage)(secreted)|CLsoC_JIC0_00651, So08(phage)|CLsoC_JIC0_01163, So08(phage)(secreted)|CLsoC_JIC0_01324, So08(phage)|CLsoC_JIC0_01520, So08(phage)|CLsoC_JIC0_01686, So08(phage)|CLsoC_JIC0_01732, So08(phage)(secreted)|CLsoC_JIC0_01844, So08(phage)(secreted)|CLsoC_JIC0_01894, So08(phage)|CLsoC_JIC0_01967
+#So08(phage)(secreted)|CLsoC_JIC0_00584, So08(phage)|CLsoC_JIC0_00803, So08(phage)(secreted)|CLsoC_JIC0_01107, So08(phage)(secreted)|CLsoC_JIC0_01525, So08(phage)|CLsoC_JIC0_01850, So08(phage)|CLsoC_JIC0_01900
+#So08(secreted)|CLsoC_JIC0_00319, So08(phage)(secreted)|CLsoC_JIC0_01819, So08(phage)(secreted)|CLsoC_JIC0_01869
+#So08(phage)(secreted)|CLsoC_JIC0_01162, So08(phage)(secreted)|CLsoC_JIC0_01639, So08(phage)|CLsoC_JIC0_01687
+
+nano unique_secreted_phage_genes.txt
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/seq_get.py --id_file unique_secreted_phage_genes.txt --input /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/CLsoC_JIC0.faa --output /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/unique_secreted_phage.faa
+
+proteome=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/unique_secreted_phage.faa
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/blast/uniprot_01102023/Uniprot_01102023_reference_proteomes.dmnd
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/prokka/diamond
+OutFile=$(basename $proteome | sed 's@.faa@@g')
+hits=10
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_diamond_blastp.sh $proteome $Database $OutDir $OutFile $hits
+#6517552
+```
+#### Mcscan
+```bash
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/intermediateData
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master
+for ID in CLsoB_ZC1 CLsoC_FIN114 CLsoC_FIN111 CLsoC_JIC0 CLsoB_HenneA CLsoA_RSTM CLsoA_NZ1 CLsoA_JNVH01; do
+  gff=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID}/*/data/*/prokka/*.gff)
+  awk '$3 == "gene" {split($9, parts, ";"); split(parts[1], subparts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, subparts[2]}' ${gff} | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/intermediateData/${ID}.gff
+done
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/intermediateData/*.gff > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master/master.gff
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master/master.gff tr ' ' '\t' > temp.gff && mv temp.gff /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master/master.gff
+
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB
+for ID in CLsoB_ZC1 CLsoC_FIN114 CLsoC_FIN111 CLsoC_JIC0 CLsoB_HenneA CLsoA_RSTM CLsoA_NZ1 CLsoA_JNVH01; do
+  Assembly=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID}/*/data/*/prokka/*.faa | grep -v 'phage')
+  DB=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/${ID}
+  makeblastdb -in ${Assembly} -out ${DB} -dbtype prot
+  for ID2 in CLsoB_ZC1 CLsoC_FIN114 CLsoC_FIN111 CLsoC_JIC0 CLsoB_HenneA CLsoA_RSTM CLsoA_NZ1 CLsoA_JNVH01; do
+    Query=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID2}/*/data/*/prokka/*.faa | grep -v 'phage')
+    Out=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/intermediateData/${ID2}_v_${ID}.blast
+    blastp -db ${DB} -query ${Query} -num_threads 32 -evalue 1e-10 -num_alignments 20 -outfmt 6 -out ${Out}
+  done
+done
+#6517795
+
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/intermediateData/*.blast > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master/master.blast tr ' ' '\t' > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master/master.blast
+
+source package 038f5eb6-dc79-46b5-bb52-a86ed67aa64a
+MCScanX /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/CLso_fin/master/master
+```
+69182 matches imported (68253 discarded)
+2437 pairwise comparisons
+1641 alignments generated
+
+```bash
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData
+mkdir /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master
+for ID in CLsoB_ZC1 CLeu_ASUK1 CLeu_ASNZ1 CLct_Oxford CLcr_BT-1 CLcr_BT-0 CLbr_Asol15 CLas_psy62 CLas_JXGC CLas_Ishi-1 CLas_gxpsy CLam_SaoPaulo CLam_PW_SP CLaf_PTSAPSY CLaf_Ang37 CLsoC_JIC0; do
+  gff=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID}/*/data/*/prokka/*.gff)
+  awk '$3 == "gene" {split($9, parts, ";"); split(parts[1], subparts, "="); printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", $1, $2, $3, $4, $5, $6, $7, $8, subparts[2]}' ${gff} | awk '{print $1, $9, $4, $5}' | sed 's@gnl|JIC|@@g' | sed 's@_gene@@g' > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/${ID}.gff
+done
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/*.gff > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.gff
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.gff tr ' ' '\t' > temp.gff && mv temp.gff /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.gff
+
+mkdir -p /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB
+for ID in CLsoB_ZC1 CLeu_ASUK1 CLeu_ASNZ1 CLct_Oxford CLcr_BT-1 CLcr_BT-0 CLbr_Asol15 CLas_psy62 CLas_JXGC CLas_Ishi-1 CLas_gxpsy CLam_SaoPaulo CLam_PW_SP CLaf_PTSAPSY CLaf_Ang37 CLsoC_JIC0; do
+  Assembly=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID}/*/data/*/prokka/*.faa | grep -v 'phage')
+  DB=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/ncbiDB/${ID}
+  makeblastdb -in ${Assembly} -out ${DB} -dbtype prot
+  for ID2 in CLsoB_ZC1 CLeu_ASUK1 CLeu_ASNZ1 CLct_Oxford CLcr_BT-1 CLcr_BT-0 CLbr_Asol15 CLas_psy62 CLas_JXGC CLas_Ishi-1 CLas_gxpsy CLam_SaoPaulo CLam_PW_SP CLaf_PTSAPSY CLaf_Ang37 CLsoC_JIC0; do
+    Query=$(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/${ID2}/*/data/*/prokka/*.faa | grep -v 'phage')
+    Out=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/${ID2}_v_${ID}.blast
+    blastp -db ${DB} -query ${Query} -num_threads 32 -evalue 1e-10 -num_alignments 20 -outfmt 6 -out ${Out}
+  done
+done
+#6517902
+cat /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/intermediateData/*.blast > /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.blast
+< /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.blast tr ' ' '\t' > temp.blast && mv temp.blast /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master.blast
+
+source package 038f5eb6-dc79-46b5-bb52-a86ed67aa64a
+MCScanX /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/analysis/synteny/mcscanx/interspecies/master/master
+```
+Generating BLAST list
+170150 matches imported (170323 discarded)
+3206 pairwise comparisons
+
+#### Circos
+```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/assembly_v2_corrected_fixstart_corrected.fa
+OutDir=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/genomes/CLsoC_JIC0/1/data/JIC0/circos
+mkdir $OutDir
+
+singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3 ~/git_repos/Scripts/NBI/fasta-to-karyotype.py $Assembly > $OutDir/karyotype.txt
+
+samtools sort -@ 4 -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/minimap2-2/assembly_v2_corrected_fixstart_corrected.sorted.bam  /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/minimap2-2/assembly_v2_corrected_fixstart_corrected.fa.bam
+samtools depth -a /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/minimap2-2/assembly_v2_corrected_fixstart_corrected.sorted.bam > ${OutDir}/coverage.txt
+samtools faidx $Assembly
+cut -f1,2 ${Assembly}.fai > ${OutDir}/genome.txt
+bedtools makewindows -g ${Assembly}.fai -w 2000 -s 2000 > $OutDir/genome.windows
+samtools index /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/minimap2-2/assembly_v2_corrected_fixstart_corrected.sorted.bam
+bedtools multicov -bams /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/inspector/inspector2/inspector/minimap2-2/assembly_v2_corrected_fixstart_corrected.sorted.bam -bed $OutDir/genome.windows > $OutDir/genome.cov.histogram
+
+for file in $(ls /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983655.1/LVWB01000*.bed /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCA_001983675.1/LWEB01000*.bed /jic/research-groups/Saskia-Hogenhout/TCHeaven/Genomes/Candidatus/Liberibacter_solanacearum/GCF_000183665.1/GCF_000183665.1_ASM18366v1_genomic_final.bed); do
+awk '{print $0 "\t0.5"}' $file | awk '{$1=$1; print}' OFS="\t" > $OutDir/$(basename $file)
+done
+
+cp /hpc-home/did23faz/git_repos/temp/bands.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ideogram.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ideogram.label.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ideogram.position.conf $OutDir/.
+cp /hpc-home/did23faz/git_repos/temp/ticks.conf $OutDir/.
+
+source package 22619b3e-43a5-4546-ab14-4561f701f247
+cd $OutDir
+circos -conf /hpc-home/did23faz/git_repos/temp/liberibacter_circos-2.conf 
+mv circos.svg circos_v_ZC1.svg
+mv circos.png circos_v_ZC1.png
+circos -conf /hpc-home/did23faz/git_repos/temp/liberibacter_circos2-2.conf 
+mv circos.svg circos_v_FIN114.svg
+mv circos.png circos_v_FIN114.png  
+circos -conf /hpc-home/did23faz/git_repos/temp/liberibacter_circos3-2.conf
+mv circos.svg circos_v_FIN111.svg
+mv circos.png circos_v_FIN111.png 
+circos -conf /hpc-home/did23faz/git_repos/temp/liberibacter_circos2-2-2.conf 
+mv circos.svg circos_v_FIN114_stacked.svg
+mv circos.png circos_v_FIN114_stacked.png
+circos -conf /hpc-home/did23faz/git_repos/temp/liberibacter_circos3-2-2.conf 
+mv circos.svg circos_v_FIN111_stacked.svg
+mv circos.png circos_v_FIN111_stacked.png
+```

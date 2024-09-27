@@ -1065,8 +1065,9 @@ for Fasta_file in /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/Cand
     x=$(printf "%02d" $x)
     Id_field=1
     Taxon_code=$(echo $Fasta_file | cut -d '/' -f11)
+    echo $x
     echo $Taxon_code
-    ~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl  $Taxon_code $Fasta_file $Id_field
+    ~/git_repos/Scripts/NBI/orthomclAdjustFasta.pl $Taxon_code $Fasta_file $Id_field
     x=$((10#$x + 1))
 done
 
@@ -1101,7 +1102,19 @@ Align=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/ortholo
 cpu=4
 singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/iqtree_2.3.0.sif iqtree2 -s $Align -m mtInv+F+I+R4 -B 1000 -T AUTO --threads-max $cpu -redo 
 #6429332
-```
+
+#Analysis results written to:
+#  IQ-TREE report:                /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/orthology/orthofinder/All_carsonella_1/formatted/orthofinder52000/Results_All_carsonella_1/WorkingDirectory/Alignments_ids/SpeciesTreeAlignment.fa.iqtree
+#  Maximum-likelihood tree:       /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/orthology/orthofinder/All_carsonella_1/formatted/orthofinder52000/Results_All_carsonella_1/WorkingDirectory/Alignments_ids/SpeciesTreeAlignment.fa.treefile
+#  Likelihood distances:          /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/orthology/orthofinder/All_carsonella_1/formatted/orthofinder52000/Results_All_carsonella_1/WorkingDirectory/Alignments_ids/SpeciesTreeAlignment.fa.mldist
+
+#Ultrafast bootstrap approximation results written to:
+#  Split support values:          /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/orthology/orthofinder/All_carsonella_1/formatted/orthofinder52000/Results_All_carsonella_1/WorkingDirectory/Alignments_ids/SpeciesTreeAlignment.fa.splits.nex
+#  Consensus tree:                /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/orthology/orthofinder/All_carsonella_1/formatted/orthofinder52000/Results_All_carsonella_1/WorkingDirectory/Alignments_ids/SpeciesTreeAlignment.fa.contree
+#  Screen log file:               /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/orthology/orthofinder/All_carsonella_1/formatted/orthofinder52000/Results_All_carsonella_1/WorkingDirectory/Alignments_ids/SpeciesTreeAlignment.fa.log
+
+ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Symbionts/analysis/phylogeny/orthofinder/iqtree2/Carsonella-iqtree.tree.txt
+  ```
 #### OrthoFinder
 ```bash
 for file in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/analysis/orthofinder/*.faa); do

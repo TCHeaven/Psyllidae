@@ -1437,6 +1437,16 @@ sbatch $ProgDir/run_purge_dups.sh $Assembly $MappingFile $Type $OutDir $OutPrefi
 #4463    4463    789     7321    119249  266404  488568  2845242 683.2e6 T_apicales_880m_29_3_3.0_0.75_HiFiPurged.fa
 ```
 ```bash
+Assembly=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/T_apicales_880m_29_3_3.0_0.75_TellSeqPurged.fa
+OutPrefix=$(basename $Assembly | sed 's@.fa@@g')_kraken2nt
+OutDir=$(dirname $Assembly)/kraken2.1.3
+Database=/jic/scratch/groups/Saskia-Hogenhout/tom_heaven/databases/kraken/nt_14092023
+ProgDir=~/git_repos/Wrappers/NBI
+mkdir $OutDir
+sbatch $ProgDir/run_kraken2.sh $Assembly $Database $OutDir $OutPrefix 2>&1 >> ${OutDir}/log.txt
+#6453307
+```
+```bash
 for Genome in $(ls /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/assembly/genome/T_apicales/hifiasm_19.5/880m/29/3/3.0/0.75/purge_dups/T_apicales_880m_29_3_3.0_0.75_*Purged.fa); do
     ProgDir=~/git_repos/Wrappers/NBI
     OutDir=$(dirname $Genome)/BUSCO
