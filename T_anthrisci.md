@@ -3892,3 +3892,68 @@ for ReadDir in $(ls -d /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae
     sbatch $ProgDir/run_canu.sh $OutDir $OutFile $Genomesize $DataType $Run1 $Run2
 done #57221669
 ``` 
+
+```bash
+
+echo -e "SUPER_1\t38866992\t38867018" > temp_chop.bed
+echo -e "SUPER_10\t27879325\t27879376" >> temp_chop.bed
+echo -e "SUPER_11\t7778392\t7778444" >> temp_chop.bed
+echo -e "SUPER_11\t22248644\t22248696" >> temp_chop.bed
+echo -e "SUPER_13\t15935938\t15937073" >> temp_chop.bed
+echo -e "SUPER_2\t14201712\t14203044" >> temp_chop.bed
+echo -e "SUPER_3\t10121214\t10122100" >> temp_chop.bed
+echo -e "SUPER_4\t41412423\t41412449" >> temp_chop.bed
+echo -e "SUPER_5\t5134175\t5134226" >> temp_chop.bed
+echo -e "SUPER_7\t11500948\t11500974" >> temp_chop.bed
+echo -e "SUPER_9\t7122853\t7122880" >> temp_chop.bed
+echo -e "SUPER_9\t28416724\t28416749" >> temp_chop.bed
+echo -e "SUPER_9\t34242008\t34242060" >> temp_chop.bed
+
+Genome=/home/theaven/scratch/uncompressed/hogenhout/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+Out=$(echo $Genome | sed 's@.fa@_fcs.fa@g')
+samtools faidx $Genome
+cut -f1,2 ${Genome}.fai > genome_file.genome
+bedtools makewindows -g genome_file.genome -w 1 | bedtools merge > all_regions.bed
+bedtools subtract -a all_regions.bed -b temp_chop.bed > keep_regions.bed
+
+bedtools getfasta \
+-fi $Genome \
+-fo $Out \
+-bed keep_regions.bed
+
+python
+from Bio import SeqIO
+
+def rejoin_sequences(fasta_file, output_file):
+    sequences = {}
+    
+    # Read sequences from the FASTA file
+    for record in SeqIO.parse(fasta_file, "fasta"):
+        seq_id = record.id.split(":")[0]  # Extract original sequence ID
+        if seq_id not in sequences:
+            sequences[seq_id] = ""
+        sequences[seq_id] += str(record.seq)  # Concatenate sequence parts
+    
+    # Write the rejoined sequences to a new FASTA file
+    with open(output_file, "w") as out_fasta:
+        for seq_id, sequence in sequences.items():
+            out_fasta.write(f">{seq_id}\n")
+            out_fasta.write(f"{sequence}\n")
+
+# Usage
+rejoin_sequences("/home/theaven/scratch/uncompressed/hogenhout/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_fcs.fa", "/home/theaven/scratch/uncompressed/hogenhout/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa")
+exit()
+
+singularity exec --bind /home/theaven/scratch/uncompressed/hogenhout:/mnt ~/scratch/apps/containers/assembly-stats_1.0.1--h4ac6f70_8 assembly-stats /mnt/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa
+stats for /mnt/T_anthrisci_820m_48_1_10.0_0.25_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa
+sum = 587803007, n = 361, ave = 1628263.18, largest = 67458871
+N50 = 48836079, n = 6
+N60 = 39880446, n = 7
+N70 = 35976962, n = 8
+N80 = 32180038, n = 10
+N90 = 29929113, n = 12
+N100 = 1000, n = 361
+N_count = 543075
+Gaps = 4372
+
+```

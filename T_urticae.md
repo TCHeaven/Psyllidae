@@ -6015,3 +6015,73 @@ Assemble with hifiasm - unzip reads first as hifiasm may not like gzipped reads.
 more data default:
 n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
 20013    20013    4360    6253    34674    69264    130990    89516    877047    1.009e9    Trurt_default.bp.p_ctg.fa
+
+
+'''bash
+conda activate bedtools
+echo -e "HiC_scaffold_1218\t319\t344" > temp_chop.bed
+echo -e "HiC_scaffold_2702\t1892\t1910" >> temp_chop.bed
+echo -e "HiC_scaffold_4690\t5923\t5976" >> temp_chop.bed
+echo -e "SUPER_1\t31390462\t31390513" >> temp_chop.bed
+echo -e "SUPER_1\t53212671\t53212723" >> temp_chop.bed
+echo -e "SUPER_1\t54499427\t54499481" >> temp_chop.bed
+echo -e "SUPER_1\t65033085\t65033110" >> temp_chop.bed
+echo -e "SUPER_1\t65588400\t65588451" >> temp_chop.bed
+echo -e "SUPER_1\t68571198\t68571271" >> temp_chop.bed
+echo -e "SUPER_11\t32900154\t32900531" >> temp_chop.bed
+echo -e "SUPER_4\t7147554\t7147580" >> temp_chop.bed
+echo -e "SUPER_5\t38254975\t38255003" >> temp_chop.bed
+echo -e "SUPER_6\t48915161\t48915186" >> temp_chop.bed
+echo -e "SUPER_7\t27957912\t27957990" >> temp_chop.bed
+echo -e "SUPER_7\t31829076\t31829128" >> temp_chop.bed
+echo -e "SUPER_8\t17088978\t17089004" >> temp_chop.bed
+
+Genome=/home/theaven/scratch/uncompressed/hogenhout/T_urticae_715m_12_2_3.0_0.5_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+Out=$(echo $Genome | sed 's@.fa@_fcs.fa@g')
+samtools faidx $Genome
+cut -f1,2 ${Genome}.fai > genome_file.genome
+bedtools makewindows -g genome_file.genome -w 1 | bedtools merge > all_regions.bed
+bedtools subtract -a all_regions.bed -b temp_chop.bed > keep_regions.bed
+
+bedtools getfasta \
+-fi $Genome \
+-fo $Out \
+-bed keep_regions.bed
+
+python
+from Bio import SeqIO
+
+def rejoin_sequences(fasta_file, output_file):
+    sequences = {}
+    
+    # Read sequences from the FASTA file
+    for record in SeqIO.parse(fasta_file, "fasta"):
+        seq_id = record.id.split(":")[0]  # Extract original sequence ID
+        if seq_id not in sequences:
+            sequences[seq_id] = ""
+        sequences[seq_id] += str(record.seq)  # Concatenate sequence parts
+    
+    # Write the rejoined sequences to a new FASTA file
+    with open(output_file, "w") as out_fasta:
+        for seq_id, sequence in sequences.items():
+            out_fasta.write(f">{seq_id}\n")
+            out_fasta.write(f"{sequence}\n")
+
+# Usage
+rejoin_sequences("/home/theaven/scratch/uncompressed/hogenhout/T_urticae_715m_12_2_3.0_0.5_break_TellSeqPurged_curated_nomito_filtered_corrected_fcs.fa", "/home/theaven/scratch/uncompressed/hogenhout/T_urticae_715m_12_2_3.0_0.5_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa")
+exit()
+
+singularity exec --bind /home/theaven/scratch/uncompressed/hogenhout:/mnt ~/scratch/apps/containers/assembly-stats_1.0.1--h4ac6f70_8 assembly-stats /mnt/T_urticae_715m_12_2_3.0_0.5_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa
+stats for /mnt/T_urticae_715m_12_2_3.0_0.5_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa
+sum = 659570566, n = 4280, ave = 154105.27, largest = 70937744
+N50 = 51636694, n = 6
+N60 = 38452051, n = 7
+N70 = 36427807, n = 9
+N80 = 33909251, n = 11
+N90 = 23855190, n = 13
+N100 = 983, n = 4280
+N_count = 5403533
+Gaps = 12541
+
+
+```

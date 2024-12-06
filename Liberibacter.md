@@ -1642,6 +1642,11 @@ mv $file $(dirname $file)/$(echo $OutFile | sed 's@.fna.fna@.fna@g')
 done
 average_nucleotide_identity.py -i /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/ -o /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/Psyllidae/Liberibacter/pyani2/TETRA_output -m TETRA -g --gformat jpeg,jpg,pdf,png
 
+#on acer local machine
+source /home/tcheaven/anaconda3/bin/activate pyani_env
+average_nucleotide_identity.py -i /home/tcheaven/pyani4/ -o /home/tcheaven/pyani4/TETRA_output -m TETRA -g --gformat jpeg,jpg,pdf,png
+
+
 singularity exec /jic/scratch/groups/Saskia-Hogenhout/tom_heaven/containers/python3.sif python3
 ```
 ```python
@@ -5265,4 +5270,42 @@ mv circos.png circos_v_FIN114_stacked.png
 circos -conf /hpc-home/did23faz/git_repos/temp/liberibacter_circos3-2-2.conf 
 mv circos.svg circos_v_FIN111_stacked.svg
 mv circos.png circos_v_FIN111_stacked.png
+```
+```bash
+/home/theaven/scratch/uncompressed/hogenhout/phage_gene_comp
+
+ProjDir=/home/theaven/scratch/uncompressed/hogenhout
+cd $ProjDir
+IsolateAbrv=phage_groups
+WorkDir=analysis/orthology/orthofinder/$IsolateAbrv
+mkdir -p $WorkDir
+mkdir -p $WorkDir/formatted
+mkdir -p $WorkDir/goodProteins
+mkdir -p $WorkDir/badProteins  
+cd $WorkDir/formatted
+
+for Fasta_file in $(ls ${ProjDir}/phage_gene_comp/*/predicted_genes/*.fasta); do
+#echo $Fasta_file
+#grep '>;' $Fasta_file
+Id_field=1
+Taxon_code=$(echo $Fasta_file | cut -d '/' -f 10 | sed 's@_region_@@g'| sed 's@.fasta@@g')
+~/git_repos/Scripts/gruffalo/orthomclAdjustFasta.pl $Taxon_code $Fasta_file $Id_field
+done
+
+cd $ProjDir
+
+for WorkDir in $(ls -d analysis/orthology/orthofinder/*); do
+Input_dir=$WorkDir/formatted
+Min_length=10
+Max_percent_stops=20
+Good_proteins_file=$WorkDir/goodProteins/goodProteins.fasta
+Poor_proteins_file=$WorkDir/badProteins/poorProteins.fasta
+~/git_repos/Scripts/gruffalo/orthomclFilterFasta.pl $Input_dir $Min_length $Max_percent_stops $Good_proteins_file $Poor_proteins_file
+done
+
+conda activate orthofinder
+Prefix=phages
+OutDir=orthofinder52000
+sbatch ~/git_repos/Wrappers/gruffalo/run_orthofinder.sh $Input_dir $Prefix $OutDir
+#23413805
 ```

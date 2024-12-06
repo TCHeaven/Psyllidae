@@ -4135,3 +4135,61 @@ n    n:500    L50    min    N80    N50    N20    E-size    max    sum    name
 5789    5789    1018    6062    114841    253936    484828    324707    2804342    868.6e6    ../Trapi_default.p_ctg.fa
 
 --hg-size to 650m -D 10
+
+
+```bash
+
+echo -e "SUPER_2\t30431755\t30431780" > temp_chop.bed
+echo -e "SUPER_3\t49569534\t49569587" >> temp_chop.bed
+echo -e "SUPER_7\t515443\t515496" >> temp_chop.bed
+echo -e "SUPER_7\t15142354\t15142381" >> temp_chop.bed
+echo -e "SUPER_9\t12632583\t12632608" >> temp_chop.bed
+
+Genome=/home/theaven/scratch/uncompressed/hogenhout/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected.fa
+Out=$(echo $Genome | sed 's@.fa@_fcs.fa@g')
+samtools faidx $Genome
+cut -f1,2 ${Genome}.fai > genome_file.genome
+bedtools makewindows -g genome_file.genome -w 1 | bedtools merge > all_regions.bed
+bedtools subtract -a all_regions.bed -b temp_chop.bed > keep_regions.bed
+
+bedtools getfasta \
+-fi $Genome \
+-fo $Out \
+-bed keep_regions.bed
+
+python
+from Bio import SeqIO
+
+def rejoin_sequences(fasta_file, output_file):
+    sequences = {}
+    
+    # Read sequences from the FASTA file
+    for record in SeqIO.parse(fasta_file, "fasta"):
+        seq_id = record.id.split(":")[0]  # Extract original sequence ID
+        if seq_id not in sequences:
+            sequences[seq_id] = ""
+        sequences[seq_id] += str(record.seq)  # Concatenate sequence parts
+    
+    # Write the rejoined sequences to a new FASTA file
+    with open(output_file, "w") as out_fasta:
+        for seq_id, sequence in sequences.items():
+            out_fasta.write(f">{seq_id}\n")
+            out_fasta.write(f"{sequence}\n")
+
+# Usage
+rejoin_sequences("/home/theaven/scratch/uncompressed/hogenhout/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_fcs.fa", "/home/theaven/scratch/uncompressed/hogenhout/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa")
+exit()
+
+singularity exec --bind /home/theaven/scratch/uncompressed/hogenhout:/mnt ~/scratch/apps/containers/assembly-stats_1.0.1--h4ac6f70_8 assembly-stats /mnt/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa
+stats for /mnt/T_apicales_880m_29_3_3.0_0.75_break_TellSeqPurged_curated_nomito_filtered_corrected_ncbi.fa
+sum = 594045867, n = 559, ave = 1062693.86, largest = 70137513
+N50 = 50117101, n = 5
+N60 = 40058190, n = 7
+N70 = 35101460, n = 8
+N80 = 32421756, n = 10
+N90 = 31088215, n = 12
+N100 = 1000, n = 559
+N_count = 544905
+Gaps = 4336
+
+```
